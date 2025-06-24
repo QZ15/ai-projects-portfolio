@@ -5,7 +5,7 @@
       "public": "apps/glaze/frontend/dist",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
-        { "source": "/glaze/**", "destination": "/glaze/index.html" }
+        { "source": "/glaze/**", "destination": "./glaze/index.html" }
       ]
     },
     {

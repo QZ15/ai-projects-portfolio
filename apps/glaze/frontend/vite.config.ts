@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   base: '/glaze/',
+  build: { outDir: './dist/glaze' }, // produces dist/glaze/index.html + assets
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
