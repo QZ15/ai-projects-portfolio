@@ -9,7 +9,7 @@ const Header: React.FC = () => {
     <header className="container mx-auto flex items-center justify-between py-4 border-b border-gray-300">
       <div className="flex items-center">
         <Link to="/">
-          <img src="/images/logo.png" alt="Ceramic Glaze Logo" className="h-20 w-20" />
+          <img src="images/logo.png" alt="Ceramic Glaze Logo" className="h-20 w-20" />
         </Link>
       </div>
       <nav className="flex-1 flex justify-center space-x-8">
@@ -47,7 +47,7 @@ const HeroSection: React.FC = () => {
         </p>
       </div>
       <img
-        src="/images/hero.png"
+        src="images/hero.png"
         alt="Hero Slide"
         className="absolute top-30 w-full h-140 object-cover"
       />
@@ -76,7 +76,7 @@ const DemoSlipCreator: React.FC = () => {
         <h2 className="text-3xl font-sans text-center mb-8">Demo Slip Creator</h2>
         <div className="flex flex-col items-center">
           <img
-            src="/images/demoSlip.png"
+            src="images/demoSlip.png"
             alt="Demo Slip Output"
             className="w-140 rounded-md shadow-md mb-8"
           />
@@ -128,7 +128,7 @@ const DemoGlazeCreator: React.FC = () => {
         <h2 className="text-3xl font-sans text-center mb-8">Demo Glaze Creator</h2>
         <div className="flex flex-col items-center">
           <img
-            src="/images/demoGlaze.png"
+            src="images/demoGlaze.png"
             alt="Demo Glaze Output"
             className="w-140 rounded-md shadow-md mb-8"
           />
@@ -196,7 +196,7 @@ interface ExploreSectionProps {
                 className="min-w-[250px] bg-white border border-gray-200 rounded-md shadow-md p-4 transform transition-transform duration-200 hover:scale-105"
             >
               <img
-                src="/images/placeholder.png"
+                src="images/placeholder.png"
                 alt="Placeholder Image"
                 className="rounded-md mb-2 mx-auto"
               />
@@ -217,7 +217,7 @@ const Footer: React.FC = () => {
           <div className="flex items-center w-full gap-4">
             <img
               alt="Logo Preview"
-              src="/images/logo.png"
+              src="images/logo.png"
               width="120"
             />
             <div className="text-5xl">Glaze Me Ceramics</div>

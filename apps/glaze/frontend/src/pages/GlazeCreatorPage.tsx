@@ -145,7 +145,7 @@ const GlazeCreatorPage: React.FC = () => {
       <header className="container mx-auto flex items-center justify-between py-4 border-b border-gray-300">
         <div className="flex items-center">
           <Link to="/">
-            <img src="/images/logo.png" alt="Ceramic Glaze Logo" className="h-20 w-20" />
+            <img src="images/logo.png" alt="Ceramic Glaze Logo" className="h-20 w-20" />
           </Link>
         </div>
         <nav className="flex-1 flex justify-center space-x-8">
