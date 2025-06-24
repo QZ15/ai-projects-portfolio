@@ -1,0 +1,20 @@
+{
+  "hosting": [
+    {
+      "site": "ai-projects-portfolio",
+      "public": "apps/glaze/frontend/dist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        { "source": "/glaze/**", "destination": "/glaze/index.html" }
+      ]
+    },
+    {
+      "site": "ai-projects-portfolio",
+      "public": "apps/portfolio/frontend/dist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        { "source": "/**", "destination": "/index.html" }
+      ]
+    }
+  ]
+}

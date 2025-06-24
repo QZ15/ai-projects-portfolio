@@ -1,0 +1,13 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App.tsx'
+import './styles/global.css'; // Make sure your Tailwind or global CSS is imported
+
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <BrowserRouter basename='/glaze'>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+);

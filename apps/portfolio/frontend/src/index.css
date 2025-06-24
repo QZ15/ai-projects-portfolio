@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.global.css
+.text-center {
+  text-align: center;
+}
+
+.bg-dark {
+  background-color: #1a1a1a;
+}
+
+.text-light {
+  color: #d1d5db;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+}

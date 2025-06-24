@@ -1,0 +1,28 @@
+{
+  "name": "ai-projects-portfolio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:glaze:frontend": "cd apps/glaze/frontend && npm run dev",
+    "dev:glaze:backend": "cd apps/glaze/backend && npm run dev",
+    "dev:glaze": "concurrently \"npm run dev:glaze:frontend\" \"npm run dev:glaze:backend\"",
+    "dev:portfolio:frontend": "cd apps/portfolio/frontend && npm run dev",
+    "dev:portfolio:backend": "cd apps/portfolio/backend && npm run dev",
+    "dev:portfolio": "concurrently \"npm run dev:portfolio:frontend\" \"npm run dev:portfolio:backend\"",
+    "build:glaze:frontend": "cd apps/glaze/frontend && npm run build",
+    "build:portfolio:frontend": "cd apps/portfolio/frontend && npm run build",
+    "build": "concurrently \"npm run build:glaze:frontend\" \"npm run build:portfolio:frontend\"",
+    "start:glaze:backend": "cd apps/glaze/backend && npm start",
+    "start:portfolio:backend": "cd apps/portfolio/backend && npm start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  },
+  "dependencies": {
+    "firebase": "^11.9.1"
+  }
+}

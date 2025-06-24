@@ -1,0 +1,49 @@
+.navbar {
+    background-color: #1a1a1a;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .navbarLink {
+    color: #ffffff; /* Tailwind gray-300 */
+    margin: 0 0.5rem;
+    font-weight: bold;
+    font-size: 1rem;
+    padding-top: 0.1rem;
+  }
+  
+  .navbarLink:hover {
+    color: #ffffff;
+  }
+  
+  .logo {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 1.5rem;
+  }
+  
+  /* Styles for Profile Image Link */
+.profileLink {
+  display: inline-block;
+  border-radius: 50%;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.profileLink:hover {
+  transform: scale(1.05);
+}
+
+.profileImage {
+  width: 30px; /* Adjust size as needed */
+  height: 30px;
+  object-fit: cover;
+  border-radius: 50%;
+  transition: box-shadow 0.3s ease;
+}
+
+.profileImage:hover {
+  box-shadow: 0px 0px 8px rgba(255, 255, 255, 0.5);
+}

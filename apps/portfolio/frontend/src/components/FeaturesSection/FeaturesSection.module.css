@@ -1,0 +1,42 @@
+/* FeaturesSection.module.css */
+.featuresSection {
+    background-color: #2d2d2d;
+    color: #d1d5db;
+    padding: 4rem 1rem;
+  }
+  
+  .featuresGrid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+  }
+  
+  @media (min-width: 768px) {
+    .featuresGrid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  .featureCard {
+    background-color: #3a3a3a;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+  
+  .featureCard:hover {
+    transform: translateY(-5px);
+  }
+  
+  .featureTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+  }
+  
+  .featureDescription {
+    color: #b1b5bd; /* Slightly lighter gray for the text */
+  }
+  
