@@ -1,11 +1,7 @@
 {
   "functions": {
     "source": "functions",
-<<<<<<< Updated upstream
-    "predeploy": "npm --prefix functions run build"
-=======
     "predeploy": "npm run build --prefix functions"
->>>>>>> Stashed changes
   },
   "hosting": {
     "public": "public",
