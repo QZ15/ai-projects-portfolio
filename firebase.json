@@ -10,7 +10,7 @@
       { "source": "/api/**", "function": "api" },
       { "source": "/glaze/**", "destination": "/glaze/index.html" },
       { "source": "/portfolio/**", "destination": "/portfolio/index.html" },
-      { "source": "/**", "destination": "/index.html" }
+      { "source": "/**", "destination": "/portfolio/index.html" }
     ]
   }
 }

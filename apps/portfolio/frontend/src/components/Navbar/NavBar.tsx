@@ -13,7 +13,7 @@ const Navbar: React.FC = () => {
         {/* Profile image linking to the profile page */}
         <a href="/profile" className={styles.profileLink}>
           <img
-            src="https://via.placeholder.com/40" // Replace with your profile image URL
+            src="https://placehold.co/40x40" // Replace with your profile image URL
             alt="Profile"
             className={styles.profileImage}
           />
