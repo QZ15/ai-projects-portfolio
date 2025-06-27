@@ -15,7 +15,7 @@ ai-projects-portfolio/
 │ │ ├── frontend/ ← Vite + React UI for portfolio
 │ │ └── backend/ ← (Planned) Email/contact or analytics server
 │ └── [other-apps]/ ← Placeholder folders for future projects
-├── firebase.json ← Hosting config (multi-site support)
+├── firebase.json ← Hosting config
 ├── .firebaserc ← Firebase project aliasing
 └── package.json ← Root scripts for running/building projects
 
@@ -27,7 +27,7 @@ ai-projects-portfolio/
 - **Backend:** Node.js + Express (per app where needed)
 - **Auth & DB:** Firebase Auth, Firestore
 - **AI Integration:** OpenAI GPT-4 API (planned)
-- **Hosting:** Firebase Hosting (multi-site configuration)
+- **Hosting:** Firebase Hosting (single-site configuration)
 
 ---
 

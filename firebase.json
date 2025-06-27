@@ -2,24 +2,14 @@
   "functions": {
     "source": "functions"
   },
-  "hosting": [
-    {
-      "site": "ai-projects-portfolio",
-      "public": "apps/glaze/frontend/dist",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [
-        { "source": "/api/**", "function": "api" },
-        { "source": "/glaze/**", "destination": "./glaze/index.html" }
-      ]
-    },
-    {
-      "site": "ai-projects-portfolio",
-      "public": "apps/portfolio/frontend/dist",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [
-        { "source": "/api/**", "function": "api" },
-        { "source": "/**", "destination": "/index.html" }
-      ]
-    }
-  ]
+  "hosting": {
+    "site": "ai-projects-portfolio",
+    "public": "apps/portfolio/frontend/dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "/api/**", "function": "api" },
+      { "source": "/glaze/**", "destination": "/glaze/index.html" },
+      { "source": "/**", "destination": "/index.html" }
+    ]
+  }
 }
