@@ -90,7 +90,7 @@ const GlazeCreatorPage: React.FC = () => {
     const payload = { glazePrompt };
 
     try {
-      const response = await fetch("http://localhost:5000/api/edit-glaze", {
+      const response = await fetch("/api/edit-glaze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -115,7 +115,7 @@ const GlazeCreatorPage: React.FC = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/generate-glaze", {
+      const response = await fetch("/api/generate-glaze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
