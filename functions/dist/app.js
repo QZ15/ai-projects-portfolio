@@ -3,7 +3,6 @@ import cors from "cors";
 import glazeRoutes from "./routes/glaze";
 import imageRoutes from "./routes/image";
 import editGlazeRoutes from "./routes/editGlaze";
-
 const app = express();
 app.use(cors());
 app.use(express.json());

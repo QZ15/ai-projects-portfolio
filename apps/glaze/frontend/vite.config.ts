@@ -4,15 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   base: '/glaze/',
-  build: { outDir: './dist/glaze' }, // produces dist/glaze/index.html + assets
-  plugins: [react(), tailwindcss()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
+  build: {
+    outDir: "../../../public/glaze", // or relative to your monorepo root
   },
+  plugins: [react(), tailwindcss()]
 });

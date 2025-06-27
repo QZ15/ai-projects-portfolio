@@ -1,6 +1,6 @@
 // backend/src/routes/editGlazeRoutes.ts
 import { Router, Request, Response } from "express";
-import openai from "../services/openai";
+import openai from "../services/openai.js";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
@@ -9,11 +9,11 @@ dotenv.config();
 
 const router = Router();
 
-router.post("/edit-glaze", async (req: Request, res: Response): Promise<void> => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     // Define paths to your assets
-    const baseImagePath = path.join(__dirname, "../../assets/base.png");
-    const maskImagePath = path.join(__dirname, "../../assets/base-mask.png");
+    const baseImagePath = path.join(__dirname, "../assets/base.png");
+    const maskImagePath = path.join(__dirname, "../assets/base-mask.png");
 
     // Verify that files exist by checking file stats
     if (!fs.existsSync(baseImagePath) || !fs.existsSync(maskImagePath)) {

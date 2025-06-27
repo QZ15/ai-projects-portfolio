@@ -13,6 +13,7 @@
     "build:glaze:frontend": "cd apps/glaze/frontend && npm run build",
     "build:portfolio:frontend": "cd apps/portfolio/frontend && npm run build",
     "build": "concurrently \"npm run build:glaze:frontend\" \"npm run build:portfolio:frontend\"",
+    "build-all": "npm run build -w apps/portfolio/frontend && npm run build -w apps/glaze/frontend && node copy-static.js",
     "start:glaze:backend": "cd apps/glaze/backend && npm start",
     "start:portfolio:backend": "cd apps/portfolio/backend && npm start"
   },

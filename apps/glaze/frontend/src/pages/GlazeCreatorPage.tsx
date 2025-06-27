@@ -5,6 +5,7 @@ import { Slider, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import "../styles/global.css";
 
+
 interface Ingredient {
   name: string;
   value: number;
@@ -90,7 +91,7 @@ const GlazeCreatorPage: React.FC = () => {
     const payload = { glazePrompt };
 
     try {
-      const response = await fetch("/api/edit-glaze", {
+      const response = await fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
