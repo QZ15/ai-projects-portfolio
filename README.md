@@ -1,6 +1,6 @@
 # AI Projects Portfolio Monorepo
 
-This monorepo contains Qasim’s AI-powered full-stack project portfolio, built using Vite, React, Material UI, and Firebase. Each app lives in its own folder under `apps/` and is structured with separate `frontend` and `backend` directories when applicable.
+This monorepo contains Qasim’s AI-powered project portfolio built with Vite, React and Firebase. Each application lives under `apps/` with its own `frontend` and `backend` packages, while a shared `functions/` directory exposes serverless APIs that integrate with OpenAI and Firebase.
 
 ---
 
@@ -8,36 +8,38 @@ This monorepo contains Qasim’s AI-powered full-stack project portfolio, built 
 
 ai-projects-portfolio/
 ├── apps/
-│ ├── glaze/
-│ │ ├── frontend/ ← Vite + React UI
-│ │ └── backend/ ← Express API server
-│ ├── portfolio/
-│ │ ├── frontend/ ← Vite + React UI for portfolio
-│ │ └── backend/ ← (Planned) Email/contact or analytics server
-│ └── [other-apps]/ ← Placeholder folders for future projects
-├── firebase.json ← Hosting config (multi-site support)
-├── .firebaserc ← Firebase project aliasing
-└── package.json ← Root scripts for running/building projects
+│   ├── glaze/
+│   │   ├── frontend/ ← React + MUI interface
+│   │   └── backend/  ← Express API for local development
+│   └── portfolio/
+│       ├── frontend/ ← React + Tailwind site
+│       └── backend/  ← Express server with Firebase Admin
+├── functions/        ← Cloud Functions with OpenAI endpoints
+├── public/           ← Compiled static assets for Hosting
+├── copy-static.js    ← Copies build output into `public/`
+├── firebase.json     ← Hosting & rewrite configuration
+├── .firebaserc       ← Firebase project aliasing
+└── package.json      ← Root scripts for running/building projects
 
 ---
 
 ## 🔧 Tech Stack
 
-- **Frontend:** Vite + React + Material UI
-- **Backend:** Node.js + Express (per app where needed)
-- **Auth & DB:** Firebase Auth, Firestore
-- **AI Integration:** OpenAI GPT-4 API (planned)
-- **Hosting:** Firebase Hosting (multi-site configuration)
+- **Frontend:** Vite + React (MUI in the glaze app, Tailwind in the portfolio)
+- **Backend:** Node.js + Express for each app, plus Firebase Cloud Functions
+- **Auth & DB:** Firebase Auth, Firestore and Admin SDK
+- **AI Integration:** OpenAI API via Cloud Functions
+- **Hosting:** Firebase Hosting with multi-site rewrites
 
 ---
 
 ## 🚀 Projects
 
 ### 1. Ceramic Glaze Website `/glaze`
-AI-powered tool to generate and manage ceramic glaze formulas based on prompts or images.
+React + MUI interface with an Express backend. Uses Cloud Functions and OpenAI to generate glaze recipes and images.
 
 ### 2. Portfolio Site `/`
-Main hub to showcase all projects, interactive resume, DevHub, and analytics.
+React + Tailwind site with an Express API that connects to Firebase for data and authentication.
 
 Future additions include:
 - Career Hub
@@ -52,15 +54,21 @@ Future additions include:
 
 | Script | Description |
 |--------|-------------|
-| `npm run dev:glaze` | Run frontend + backend for glaze project |
-| `npm run dev:portfolio` | Run frontend for portfolio (backend WIP) |
+| `npm run dev:glaze` | Run glaze frontend and backend |
+| `npm run dev:portfolio` | Run portfolio frontend and backend |
+| `npm run dev:glaze:frontend` | Dev glaze frontend only |
+| `npm run dev:glaze:backend` | Dev glaze backend only |
+| `npm run dev:portfolio:frontend` | Dev portfolio frontend only |
+| `npm run dev:portfolio:backend` | Dev portfolio backend only |
 | `npm run build` | Build all frontends |
-| `npm run start:glaze:backend` | Start backend API for glaze (production) |
+| `npm run build-all` | Build all apps and copy to `public/` |
+| `npm run start:glaze:backend` | Start glaze backend in production |
+| `npm run start:portfolio:backend` | Start portfolio backend in production |
 
 ---
 
 ## 🌐 Hosting Setup
 
-Hosting is configured using Firebase’s `rewrites` so each app lives under its own subpath (e.g. `/glaze`, `/career-hub`). All share Firebase Auth and Firestore if needed.
+Firebase Hosting serves the built apps from `public/` and rewrites API calls to the `functions` directory. Paths like `/glaze` and `/portfolio` load their respective single-page apps while `/api/**` is handled by the Cloud Functions API.
 
 ---
