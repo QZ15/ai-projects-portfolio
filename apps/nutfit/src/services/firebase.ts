@@ -6,6 +6,7 @@ import {
   getDoc,
   collection,
   addDoc,
+  setDoc,
 } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
@@ -41,4 +42,29 @@ export async function saveMeal(uid: string, meal: any) {
 
 export async function addMealHistory(uid: string, meal: any) {
   await addDoc(collection(db, 'users', uid, 'mealHistory'), meal);
+}
+
+export async function callWorkoutFunction(name: string, data?: any) {
+  const fn = httpsCallable(functions, name);
+  const res = await fn(data);
+  return res.data;
+}
+
+export async function getWorkoutPlan(uid: string, weekId: string) {
+  const ref = doc(db, 'users', uid, 'workouts', weekId);
+  const snap = await getDoc(ref);
+  return snap.exists() ? snap.data() : null;
+}
+
+export async function saveWorkoutPlan(uid: string, weekId: string, plan: any) {
+  const ref = doc(db, 'users', uid, 'workouts', weekId);
+  await setDoc(ref, plan);
+}
+
+export async function addWorkoutLog(
+  uid: string,
+  workoutId: string,
+  log: any,
+) {
+  await addDoc(collection(db, 'users', uid, 'workouts', workoutId, 'logs'), log);
 }
