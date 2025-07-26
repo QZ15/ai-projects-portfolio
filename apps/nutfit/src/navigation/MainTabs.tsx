@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import DashboardScreen from '../screens/DashboardScreen';
 import MealPlannerScreen from '../screens/MealPlannerScreen';
 import WorkoutPlannerScreen from '../screens/WorkoutPlannerScreen';
@@ -10,7 +11,23 @@ const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false, tabBarStyle: { backgroundColor: '#000' }, tabBarActiveTintColor: '#fff' }}>
+    <Tab.Navigator
+      initialRouteName="Dashboard"
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarStyle: { backgroundColor: '#000' },
+        tabBarActiveTintColor: '#fff',
+        tabBarIcon: ({ color, size }) => {
+          let iconName: keyof typeof Ionicons.glyphMap = 'home';
+          if (route.name === 'Dashboard') iconName = 'home';
+          else if (route.name === 'Meals') iconName = 'fast-food';
+          else if (route.name === 'Workouts') iconName = 'barbell';
+          else if (route.name === 'Schedule') iconName = 'calendar';
+          else if (route.name === 'Progress') iconName = 'stats-chart';
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+      })}
+    >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Meals" component={MealPlannerScreen} />
       <Tab.Screen name="Workouts" component={WorkoutPlannerScreen} />
