@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dimensions, Text } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
-import Card from '../Card';
+import Card from '../ui/Card';
 
 interface Slice {
   name: string;

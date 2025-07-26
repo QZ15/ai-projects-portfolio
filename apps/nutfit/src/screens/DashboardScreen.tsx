@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { colors, spacing } from '../theme';
 import useAuth from '../hooks/useAuth';
 import { getUserData } from '../services/firebase';
-import Card from '../components/Card';
-import QuickActionButton from '../components/QuickActionButton';
+import { Card, QuickActionButton } from '../components/ui';
 
 type UserData = {
   weight?: string;
@@ -13,14 +13,27 @@ type UserData = {
 export default function DashboardScreen() {
   const { user } = useAuth();
   const [data, setData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      getUserData(user.uid).then((d) => setData(d));
+      getUserData(user.uid)
+        .then((d) => setData(d))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
   const nameOrGoal = data?.goal ?? 'User';
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <Text style={styles.header}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -50,10 +63,11 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  content: { padding: 16 },
-  header: { color: '#fff', fontSize: 24, marginBottom: 16 },
-  cardTitle: { color: '#fff', fontSize: 18, marginBottom: 8 },
-  stat: { color: '#fff', marginBottom: 4 },
-  reminder: { color: '#fff', marginBottom: 4 },
+  container: { flex: 1, backgroundColor: colors.background },
+  center: { alignItems: 'center', justifyContent: 'center' },
+  content: { padding: spacing.md },
+  header: { color: colors.text, fontSize: 24, marginBottom: spacing.md },
+  cardTitle: { color: colors.text, fontSize: 18, marginBottom: spacing.sm },
+  stat: { color: colors.text, marginBottom: spacing.xs },
+  reminder: { color: colors.text, marginBottom: spacing.xs },
 });

@@ -4,10 +4,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import OnboardingNavigator from './OnboardingNavigator';
 import MainTabs from './MainTabs';
 import useAuth from '../hooks/useAuth';
+import NotFoundScreen from '../screens/NotFoundScreen';
 
 export type RootStackParamList = {
   Onboarding: undefined;
   Main: undefined;
+  NotFound: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -25,6 +27,7 @@ export default function RootNavigator() {
         ) : (
           <Stack.Screen name="Main" component={MainTabs} />
         )}
+        <Stack.Screen name="NotFound" component={NotFoundScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

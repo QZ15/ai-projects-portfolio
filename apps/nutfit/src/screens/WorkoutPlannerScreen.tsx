@@ -9,7 +9,7 @@ import {
   TextInput,
   Button,
 } from 'react-native';
-import Card from '../components/Card';
+import { Card } from '../components/ui';
 import useAuth from '../hooks/useAuth';
 import {
   getUserData,

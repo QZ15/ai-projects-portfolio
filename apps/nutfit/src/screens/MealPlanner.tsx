@@ -8,9 +8,9 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import { colors, spacing, radius } from '../theme';
 import * as ImagePicker from 'expo-image-picker';
-import Card from '../components/Card';
-import QuickActionButton from '../components/QuickActionButton';
+import { Card, QuickActionButton } from '../components/ui';
 import useAuth from '../hooks/useAuth';
 import {
   callMealFunction,
@@ -179,21 +179,25 @@ export default function MealPlanner() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  content: { padding: 16 },
-  toggleRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
-  input: {
-    backgroundColor: '#222',
-    color: '#fff',
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 8,
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.md },
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
   },
-  mealCard: { marginBottom: 16 },
-  mealImage: { height: 200, borderRadius: 6, marginBottom: 8 },
-  mealName: { color: '#fff', fontSize: 18, marginBottom: 8 },
-  sectionTitle: { color: '#fff', fontSize: 16, marginTop: 8 },
-  ingredient: { color: '#fff', marginLeft: 8 },
-  macro: { color: '#fff', marginLeft: 8 },
-  instructions: { color: '#fff', marginTop: 4 },
+  input: {
+    backgroundColor: colors.card,
+    color: colors.text,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    marginBottom: spacing.sm,
+  },
+  mealCard: { marginBottom: spacing.md },
+  mealImage: { height: 200, borderRadius: radius.md, marginBottom: spacing.sm },
+  mealName: { color: colors.text, fontSize: 18, marginBottom: spacing.sm },
+  sectionTitle: { color: colors.text, fontSize: 16, marginTop: spacing.sm },
+  ingredient: { color: colors.text, marginLeft: spacing.sm },
+  macro: { color: colors.text, marginLeft: spacing.sm },
+  instructions: { color: colors.text, marginTop: spacing.xs },
 });

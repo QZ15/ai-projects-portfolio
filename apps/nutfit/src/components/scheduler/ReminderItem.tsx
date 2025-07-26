@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
-import Card from '../Card';
+import Card from '../ui/Card';
 
 export type ReminderType = 'meal' | 'workout' | 'habit';
 export interface Reminder {
