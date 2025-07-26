@@ -64,3 +64,14 @@ Future additions include:
 Hosting is configured using Firebase’s `rewrites` so each app lives under its own subpath (e.g. `/glaze`, `/career-hub`). All share Firebase Auth and Firestore if needed.
 
 ---
+
+## 📝 Prompt: Text Summarization
+
+Example usage with ChatGPT or any text summarization model:
+
+1. Paste the article or notes you want summarized.
+2. Ask: "Summarize the above text in a short paragraph highlighting the main ideas."
+3. Optionally specify tone or keywords you need emphasized.
+4. Review the generated summary and iterate if necessary.
+
+---
