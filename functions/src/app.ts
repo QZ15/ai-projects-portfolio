@@ -3,6 +3,7 @@ import cors from "cors";
 import glazeRoutes from "./routes/glaze";
 import imageRoutes from "./routes/image";
 import editGlazeRoutes from "./routes/editGlaze";
+import progressRoutes from "./routes/progressFeedback";
 
 const app = express();
 app.use(cors());
@@ -10,4 +11,5 @@ app.use(express.json());
 app.use("/api", glazeRoutes);
 app.use("/api", imageRoutes);
 app.use("/api", editGlazeRoutes);
+app.use("/api", progressRoutes);
 export default app;
