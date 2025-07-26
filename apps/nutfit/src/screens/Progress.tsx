@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, Button } from 'react-native';
+import { SectionHeader } from '../components/ui';
+import { colors, spacing } from '../theme';
 import useAuth from '../hooks/useAuth';
 import {
   getProgress,
@@ -7,8 +9,7 @@ import {
   getProgressFeedback,
 } from '../services/firebase';
 import { syncAppleHealth } from '../services/health';
-import LineChartCard from '../components/progress/LineChartCard';
-import PieChartCard from '../components/progress/PieChartCard';
+import { LineChartCard, PieChartCard } from '../components/progress';
 
 interface ProgressEntry {
   date: string;
@@ -50,7 +51,7 @@ export default function Progress() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.section}>Progress Charts</Text>
+      <SectionHeader>Progress Charts</SectionHeader>
       <LineChartCard
         title="Weight"
         labels={labels}
@@ -94,7 +95,7 @@ export default function Progress() {
 
       <Button title="Sync Now" onPress={handleSync} />
 
-      <Text style={styles.section}>Habit Tracker</Text>
+      <SectionHeader>Habit Tracker</SectionHeader>
       {habits.map((h) => (
         <View key={h.id} style={{ marginBottom: 8 }}>
           <Text style={styles.text}>{h.name}</Text>
@@ -104,15 +105,14 @@ export default function Progress() {
         </View>
       ))}
 
-      <Text style={styles.section}>AI Feedback</Text>
+      <SectionHeader>AI Feedback</SectionHeader>
       <Text style={styles.text}>{feedback}</Text>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  content: { padding: 16 },
-  section: { color: '#fff', fontSize: 18, marginBottom: 8, marginTop: 16 },
-  text: { color: '#fff' },
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.md },
+  text: { color: colors.text },
 });
