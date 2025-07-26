@@ -5,7 +5,7 @@ import DashboardScreen from '../screens/DashboardScreen';
 import MealPlanner from '../screens/MealPlanner';
 import WorkoutPlannerScreen from '../screens/WorkoutPlannerScreen';
 import Scheduler from '../screens/Scheduler';
-import ProgressScreen from '../screens/ProgressScreen';
+import Progress from '../screens/Progress';
 
 const Tab = createBottomTabNavigator();
 
@@ -32,7 +32,7 @@ export default function MainTabs() {
       <Tab.Screen name="Meals" component={MealPlanner} />
       <Tab.Screen name="Workouts" component={WorkoutPlannerScreen} />
       <Tab.Screen name="Schedule" component={Scheduler} />
-      <Tab.Screen name="Progress" component={ProgressScreen} />
+      <Tab.Screen name="Progress" component={Progress} />
     </Tab.Navigator>
   );
 }

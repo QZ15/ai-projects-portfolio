@@ -87,3 +87,27 @@ export async function updateReminder(uid: string, id: string, data: any) {
 export async function logCompletion(uid: string, date: string, item: any) {
   await addDoc(collection(db, 'users', uid, 'completed', date), item);
 }
+
+export async function getProgress(uid: string) {
+  const snap = await getDocs(collection(db, 'users', uid, 'progress'));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addProgress(uid: string, entry: any) {
+  await addDoc(collection(db, 'users', uid, 'progress'), entry);
+}
+
+export async function getHabits(uid: string) {
+  const snap = await getDocs(collection(db, 'users', uid, 'habits'));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function logHabit(uid: string, habitId: string, date: string) {
+  await addDoc(collection(db, 'users', uid, 'habits', habitId, 'log'), { date });
+}
+
+export async function getProgressFeedback(data: any) {
+  const fn = httpsCallable(functions, 'progressFeedback');
+  const res = await fn(data);
+  return res.data;
+}
