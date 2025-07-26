@@ -7,6 +7,7 @@ import {
   collection,
   addDoc,
   setDoc,
+  getDocs,
 } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
@@ -67,4 +68,22 @@ export async function addWorkoutLog(
   log: any,
 ) {
   await addDoc(collection(db, 'users', uid, 'workouts', workoutId, 'logs'), log);
+}
+
+export async function getReminders(uid: string) {
+  const snap = await getDocs(collection(db, 'users', uid, 'reminders'));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function saveReminder(uid: string, reminder: any) {
+  await addDoc(collection(db, 'users', uid, 'reminders'), reminder);
+}
+
+export async function updateReminder(uid: string, id: string, data: any) {
+  const ref = doc(db, 'users', uid, 'reminders', id);
+  await setDoc(ref, data, { merge: true });
+}
+
+export async function logCompletion(uid: string, date: string, item: any) {
+  await addDoc(collection(db, 'users', uid, 'completed', date), item);
 }
