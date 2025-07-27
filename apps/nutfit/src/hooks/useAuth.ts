@@ -14,7 +14,7 @@ export default function useAuth() {
       if (u) {
         const ref = doc(db, 'users', u.uid);
         const snap = await getDoc(ref);
-        setOnboarded(snap.exists());
+        setOnboarded(!!snap.data()?.hasOnboarded);
       }
       setLoading(false);
     });

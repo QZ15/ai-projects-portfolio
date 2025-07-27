@@ -8,6 +8,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius } from '../theme';
 import * as ImagePicker from 'expo-image-picker';
 import { Card, QuickActionButton } from '../components/ui';
@@ -107,7 +108,8 @@ export default function MealPlanner() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.toggleRow}>
         <QuickActionButton title="AI Meal" onPress={() => setMode('generate')} />
         <QuickActionButton
@@ -174,7 +176,8 @@ export default function MealPlanner() {
           />
         </Card>
       ))}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

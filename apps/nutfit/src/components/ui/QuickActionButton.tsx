@@ -24,9 +24,13 @@ export default React.memo(QuickActionButton);
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.card,
-    padding: spacing.sm,
-    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    height: 48,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.sm,
+    flexDirection: 'row',
   },
   text: { color: colors.text, textAlign: 'center' },
 });

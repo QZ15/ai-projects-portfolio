@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { colors, spacing } from '../theme';
 import useAuth from '../hooks/useAuth';
 import { getUserData } from '../services/firebase';
@@ -12,6 +14,7 @@ type UserData = {
 
 export default function DashboardScreen() {
   const { user } = useAuth();
+  const navigation = useNavigation<NavigationProp<any>>();
   const [data, setData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +28,7 @@ export default function DashboardScreen() {
     }
   }, [user]);
 
-  const nameOrGoal = data?.goal ?? 'User';
+  const displayName = user?.email?.split('@')[0] ?? 'User';
 
   if (loading) {
     return (
@@ -36,8 +39,9 @@ export default function DashboardScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.header}>Welcome back, {nameOrGoal}!</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.header}>Welcome back, {displayName}!</Text>
 
       <Card>
         <Text style={styles.cardTitle}>Today's Summary</Text>
@@ -48,9 +52,9 @@ export default function DashboardScreen() {
 
       <Card>
         <Text style={styles.cardTitle}>Quick Actions</Text>
-        <QuickActionButton title="View Today’s Meal Plan" />
-        <QuickActionButton title="Start Workout" />
-        <QuickActionButton title="Check Progress" />
+        <QuickActionButton title="View Today’s Meal Plan" onPress={() => navigation.navigate('Meals')} />
+        <QuickActionButton title="Start Workout" onPress={() => navigation.navigate('Workouts')} />
+        <QuickActionButton title="Check Progress" onPress={() => navigation.navigate('Progress')} />
       </Card>
 
       <Card>
@@ -58,7 +62,8 @@ export default function DashboardScreen() {
         <Text style={styles.reminder}>Meal @ 12:00 PM</Text>
         <Text style={styles.reminder}>Workout @ 6:30 PM</Text>
       </Card>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
