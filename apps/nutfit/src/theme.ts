@@ -1,10 +1,10 @@
 export const colors = {
-  background: '#000',
-  card: '#111',
-  text: '#fff',
-  muted: '#ccc',
-  border: '#444',
-  primary: '#4a4afd',
+  background: '#0a0a0a',
+  card: '#1a1a1a',
+  text: '#f5f5f5',
+  muted: '#999',
+  border: '#333',
+  primary: '#4ade80',
 };
 
 export const spacing = {
@@ -15,7 +15,7 @@ export const spacing = {
 };
 
 export const radius = {
-  sm: 4,
-  md: 6,
-  lg: 8,
+  sm: 6,
+  md: 10,
+  lg: 12,
 };

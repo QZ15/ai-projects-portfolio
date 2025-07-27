@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { colors, spacing, radius } from '../theme';
+import { globalStyles } from '../styles/global';
 import * as ImagePicker from 'expo-image-picker';
 import { Card, QuickActionButton } from '../components/ui';
 import useAuth from '../hooks/useAuth';
@@ -107,7 +108,7 @@ export default function MealPlanner() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={globalStyles.screen} contentContainerStyle={styles.content}>
       <View style={styles.toggleRow}>
         <QuickActionButton title="AI Meal" onPress={() => setMode('generate')} />
         <QuickActionButton
@@ -179,7 +180,6 @@ export default function MealPlanner() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md },
   toggleRow: {
     flexDirection: 'row',
