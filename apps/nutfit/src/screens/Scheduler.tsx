@@ -8,6 +8,8 @@ import {
   Button,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors } from '../theme';
 import { DayTabs, ReminderItem, Reminder } from '../components/scheduler';
 import useAuth from '../hooks/useAuth';
 import {
@@ -83,7 +85,7 @@ export default function Scheduler() {
   const visible = reminders.filter((r) => r.day === selected);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <DayTabs selected={selected} onSelect={setSelected} />
       <ScrollView style={styles.list} contentContainerStyle={{ padding: 16 }}>
         {visible.map((rem) => (
@@ -122,12 +124,12 @@ export default function Scheduler() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: colors.background },
   list: { flex: 1 },
   modalContainer: {
     flex: 1,
@@ -141,10 +143,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '80%',
   },
-  modalTitle: { color: '#fff', fontSize: 18, marginBottom: 8 },
+  modalTitle: { color: colors.text, fontSize: 18, marginBottom: 8 },
   input: {
     backgroundColor: '#222',
-    color: '#fff',
+    color: colors.text,
     padding: 8,
     borderRadius: 6,
     marginBottom: 12,

@@ -9,6 +9,8 @@ import {
   TextInput,
   Button,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors } from '../theme';
 import { Card } from '../components/ui';
 import useAuth from '../hooks/useAuth';
 import {
@@ -102,7 +104,8 @@ export default function WorkoutPlannerScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
       {plan.map((day, dIdx) => (
         <Card
           key={day.day}
@@ -152,7 +155,8 @@ export default function WorkoutPlannerScreen() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -163,20 +167,20 @@ function getWeekId(date = new Date()) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 16 },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  text: { color: '#fff', fontSize: 18 },
+  text: { color: colors.text, fontSize: 18 },
   dayCard: { marginBottom: 16 },
   todayCard: { borderWidth: 1, borderColor: '#444' },
-  dayTitle: { color: '#fff', fontSize: 18, marginBottom: 8 },
+  dayTitle: { color: colors.text, fontSize: 18, marginBottom: 8 },
   exerciseRow: { flexDirection: 'row', marginBottom: 8 },
-  exerciseName: { color: '#fff', fontSize: 16 },
+  exerciseName: { color: colors.text, fontSize: 16 },
   exerciseDetail: { color: '#ccc', fontSize: 14 },
   exerciseDesc: { color: '#888', fontSize: 12 },
   actions: { justifyContent: 'center', marginLeft: 8 },
@@ -194,10 +198,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '80%',
   },
-  modalTitle: { color: '#fff', fontSize: 18, marginBottom: 8 },
+  modalTitle: { color: colors.text, fontSize: 18, marginBottom: 8 },
   input: {
     backgroundColor: '#222',
-    color: '#fff',
+    color: colors.text,
     padding: 8,
     borderRadius: 6,
     marginBottom: 12,

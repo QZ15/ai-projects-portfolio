@@ -16,8 +16,11 @@ export default function MainTabs() {
       initialRouteName="Dashboard"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: { backgroundColor: '#000' },
+        tabBarStyle: { backgroundColor: '#0D0D0D' },
         tabBarActiveTintColor: '#fff',
+        tabBarInactiveTintColor: '#888',
+        tabBarLabelStyle: { paddingBottom: 2 },
+        tabBarShowLabel: true,
         tabBarIcon: ({ color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap = 'home';
           if (route.name === 'Dashboard') iconName = 'home';

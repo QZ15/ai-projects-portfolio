@@ -5,6 +5,7 @@ import glazeRoutes from "./routes/glaze.js";
 import editGlazeRoutes from "./routes/editGlaze.js";
 import imageRoutes from "./routes/image.js";
 import progressRoutes from "./routes/progressFeedback.js";
+export * from "./meal.js";
 
 const app = express();
 
