@@ -1,7 +1,9 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth'; // ✅ only this
+import { initializeApp, getApps} from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getApp } from 'firebase/app';
 import {
-  getFirestore,
+  initializeFirestore,
+  connectFirestoreEmulator,
   doc,
   getDoc,
   collection,
@@ -10,6 +12,8 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { setLogLevel } from 'firebase/firestore';
+setLogLevel('warn');
 
 const firebaseConfig = {
   apiKey: 'AIzaSyATCcmqGkufh1_YlqbC8Rv44e2Ch5rEsHY',
@@ -20,11 +24,15 @@ const firebaseConfig = {
   appId: '1:897310273497:web:5fe6b8ddc506a8448ef3c8',
 };
 
-const app = initializeApp(firebaseConfig);
+export const app = getApps().length === 0
+  ? initializeApp(firebaseConfig)
+  : getApps()[0];
 
-// ✅ Just use getAuth — no async storage or persistence setup
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const db = initializeFirestore(getApp(), {
+  experimentalForceLongPolling: true,
+  cacheSizeBytes: 1048576, // optional: limit cache size to 1MB
+});
 export const functions = getFunctions(app);
 
 // --- Your existing utility functions ---
