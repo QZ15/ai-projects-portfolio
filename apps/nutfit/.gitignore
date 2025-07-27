@@ -37,5 +37,4 @@ yarn-error.*
 *.tsbuildinfo
 
 # App assets
-assets/
 package-lock.json
