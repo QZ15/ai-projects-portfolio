@@ -1,4 +1,5 @@
-import * as Health from 'expo-health';
+// expo-health isn't available in this repo, so fall back to a mock
+import * as Health from '../mocks/expo-health';
 import { addProgress } from './firebase';
 
 export async function syncAppleHealth(uid: string) {
