@@ -1,9 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import {
-  initializeAuth,
-  getReactNativePersistence,
-} from 'firebase/auth/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAuth } from 'firebase/auth'; // ✅ only this
 import {
   getFirestore,
   doc,
@@ -19,18 +15,15 @@ const firebaseConfig = {
   apiKey: 'AIzaSyATCcmqGkufh1_YlqbC8Rv44e2Ch5rEsHY',
   authDomain: 'ai-projects-portfolio.firebaseapp.com',
   projectId: 'ai-projects-portfolio',
-  storageBucket: 'ai-projects-portfolio.firebasestorage.app',
+  storageBucket: 'ai-projects-portfolio.appspot.com',
   messagingSenderId: '897310273497',
   appId: '1:897310273497:web:5fe6b8ddc506a8448ef3c8',
 };
 
-export const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-// ✅ Auth with persistent storage for React Native
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
-
+// ✅ Just use getAuth — no async storage or persistence setup
+export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
 
