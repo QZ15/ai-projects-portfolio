@@ -11,7 +11,7 @@ export default function MetricsScreen({ navigation }: NativeStackScreenProps<Onb
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Your Stats</Text>
-      <TextInput placeholder="Current Weight (kg)" value={weight} onChangeText={setWeight} style={styles.input} placeholderTextColor="#ccc" />
+      <TextInput placeholder="Current Weight (lbs)" value={weight} onChangeText={setWeight} style={styles.input} placeholderTextColor="#ccc" />
       <TextInput placeholder="Body Fat %" value={bodyFat} onChangeText={setBodyFat} style={styles.input} placeholderTextColor="#ccc" />
       <TextInput placeholder="Goal (bulk/cut/maintain)" value={goal} onChangeText={setGoal} style={styles.input} placeholderTextColor="#ccc" />
       <Button title="Next" onPress={() => navigation.navigate('Split', { weight, bodyFat, goal })} />

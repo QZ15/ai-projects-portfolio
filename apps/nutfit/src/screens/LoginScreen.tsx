@@ -11,13 +11,15 @@ export default function LoginScreen({ navigation }: NativeStackScreenProps<Onboa
   const [password, setPassword] = useState('');
   const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState('');
-  const { user } = useAuth();
+  const { user, onboarded } = useAuth();
 
   useEffect(() => {
-    if (user) {
+    if (user && onboarded) {
+      navigation.getParent()?.navigate('Main');
+    } else if (user) {
       navigation.replace('Metrics');
     }
-  }, [user]);
+  }, [user, onboarded]);
 
   const handlePress = async () => {
     try {

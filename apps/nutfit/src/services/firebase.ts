@@ -43,6 +43,11 @@ export async function getUserData(uid: string) {
   return snap.exists() ? snap.data() : null;
 }
 
+export async function saveUserProfile(uid: string, data: any) {
+  const ref = doc(db, 'users', uid);
+  await setDoc(ref, data, { merge: true });
+}
+
 export async function callMealFunction(name: string, data?: any) {
   const fn = httpsCallable(functions, name);
   const res = await fn(data);
