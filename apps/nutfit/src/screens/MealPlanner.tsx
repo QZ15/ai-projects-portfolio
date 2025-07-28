@@ -64,10 +64,10 @@ export default function MealPlanner() {
           Meal of the Day
         </Text>
         <View className="bg-neutral-900 rounded-2xl overflow-hidden mb-6">
-          <View className="w-full aspect-[4/3]">
+          <View className="w-full h-40 overflow-hidden">
             <Image
               source={require("../../assets/mock/mealofday.png")}
-              className="w-full h-full"
+              className="w-full h-full -mt-18"
               resizeMode="cover"
             />
           </View>
