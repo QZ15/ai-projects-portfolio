@@ -14,20 +14,28 @@
     "eject": "expo prebuild"
   },
   "dependencies": {
+    "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^7.4.3",
     "@react-navigation/native": "^7.1.15",
     "@react-navigation/native-stack": "^7.3.22",
+    "clsx": "^2.1.1",
     "expo": "~53.0.20",
     "expo-image-picker": "^16.1.4",
     "expo-notifications": "^0.31.4",
     "expo-status-bar": "~2.2.3",
     "firebase": "^11.9.1",
+    "metro-react-native-babel-transformer": "^0.77.0",
+    "nativewind": "^2.0.11",
+    "postcss": "^8.4.21",
     "react": "19.0.0",
     "react-native": "0.79.5",
     "react-native-chart-kit": "^6.12.0",
+    "react-native-heroicons": "^4.0.0",
     "react-native-safe-area-context": "5.4.0",
-    "react-native-screens": "~4.11.1"
+    "react-native-screens": "~4.11.1",
+    "react-native-worklets": "^0.4.0",
+    "tailwindcss": "^3.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
