@@ -15,17 +15,17 @@ export default function LoginScreen({ navigation }: LoginProps) {
   const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, onboarded } = useAuth();
 
   // Inside useEffect:
   useEffect(() => {
     console.log("🔍 useAuth user state changed:", user?.uid || "No user");
-    if (user) {
+    if (user && onboarded) {
       Alert.alert("✅ Login Success", `Welcome ${user.email}`);
       console.log("🔄 Navigating to MainTabs (via RootNavigation)...");
-      rootNavigate("Main"); // ✅ No type error now
+      rootNavigate("Main");
     }
-  }, [user]);
+  }, [user, onboarded]);
 
   const handleAuth = async () => {
     try {
