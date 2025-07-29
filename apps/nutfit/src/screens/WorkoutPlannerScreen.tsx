@@ -1,209 +1,77 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  Button,
-} from 'react-native';
-import { Card } from '../components/ui';
-import useAuth from '../hooks/useAuth';
-import {
-  getUserData,
-  getWorkoutPlan,
-  saveWorkoutPlan,
-  callWorkoutFunction,
-  addWorkoutLog,
-} from '../services/firebase';
-
-interface Exercise {
-  name: string;
-  sets: number;
-  reps: number;
-  rest: string;
-  muscleGroup: string;
-  description?: string;
-  equipment?: string;
-}
-
-interface WorkoutDay {
-  day: string;
-  focus: string;
-  exercises: Exercise[];
-}
+import React from "react";
+import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function WorkoutPlannerScreen() {
-  const { user } = useAuth();
-  const [plan, setPlan] = useState<WorkoutDay[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [swapInfo, setSwapInfo] = useState<{ d: number; e: number } | null>(null);
-  const [swapText, setSwapText] = useState('');
-
-  const weekId = getWeekId();
-  const today = new Date().getDay();
-
-  useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      try {
-        const stored = await getWorkoutPlan(user.uid, weekId);
-        if (stored && stored.days) {
-          setPlan(stored.days as WorkoutDay[]);
-        } else {
-          const data = await getUserData(user.uid);
-          if (!data?.split) return;
-          const generated = (await callWorkoutFunction('generateWorkoutPlan', {
-            split: data.split,
-          })) as WorkoutDay[];
-          setPlan(generated);
-          await saveWorkoutPlan(user.uid, weekId, { days: generated });
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [user]);
-
-  const handleSwap = (d: number, e: number) => {
-    setSwapInfo({ d, e });
-    setSwapText(plan[d].exercises[e].name);
-  };
-
-  const saveSwap = async () => {
-    if (!user || !swapInfo) return;
-    const updated = [...plan];
-    updated[swapInfo.d].exercises[swapInfo.e].name = swapText;
-    setPlan(updated);
-    setSwapInfo(null);
-    await saveWorkoutPlan(user.uid, weekId, { days: updated });
-  };
-
-  const logExercise = async (d: number, e: number) => {
-    if (!user) return;
-    await addWorkoutLog(user.uid, weekId, {
-      day: d,
-      exercise: e,
-      completedAt: Date.now(),
-    });
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.text}>Loading...</Text>
-      </View>
-    );
-  }
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {plan.map((day, dIdx) => (
-        <Card
-          key={day.day}
-          style={[styles.dayCard, dIdx === today && styles.todayCard]}
-        >
-          <Text style={styles.dayTitle}>
-            {dIdx === today ? "Today - " : ""}
-            {day.day} ({day.focus})
-          </Text>
-          {day.exercises.map((ex, eIdx) => (
-            <View key={eIdx} style={styles.exerciseRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.exerciseName}>{ex.name}</Text>
-                <Text style={styles.exerciseDetail}>
-                  {ex.sets} x {ex.reps} - Rest {ex.rest}
-                </Text>
-                {ex.description ? (
-                  <Text style={styles.exerciseDesc}>{ex.description}</Text>
-                ) : null}
-              </View>
-              <View style={styles.actions}>
-                <TouchableOpacity onPress={() => handleSwap(dIdx, eIdx)}>
-                  <Text style={styles.swap}>Swap</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => logExercise(dIdx, eIdx)}>
-                  <Text style={styles.complete}>Done</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-        </Card>
-      ))}
-      <Modal visible={!!swapInfo} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Swap Exercise</Text>
-            <TextInput
-              value={swapText}
-              onChangeText={setSwapText}
-              style={styles.input}
-              placeholderTextColor="#888"
-            />
-            <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={() => setSwapInfo(null)} />
-              <Button title="Save" onPress={saveSwap} />
+    <SafeAreaView className="flex-1 bg-black">
+      <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }}>
+        
+        {/* Header */}
+        <View className="flex-row justify-between items-center mt-3 mb-6">
+          <Text className="text-white text-[28px] font-bold">Workout Planner</Text>
+          <TouchableOpacity className="p-2 bg-neutral-900 rounded-xl">
+            <Ionicons name="menu-outline" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* AI Workout Plan */}
+        <TouchableOpacity className="bg-neutral-900 p-4 rounded-2xl mb-3 flex-row justify-between items-center">
+          <View className="flex-row items-center">
+            <Ionicons name="apps-outline" size={20} color="#fff" style={{ marginRight: 10 }} />
+            <View>
+              <Text className="text-white font-semibold">AI Workout Plan</Text>
+              <Text className="text-gray-400 text-xs">Generate a workout plan with AI</Text>
             </View>
           </View>
+          <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+        </TouchableOpacity>
+
+        {/* Switch Routine */}
+        <TouchableOpacity className="bg-neutral-900 p-4 rounded-2xl mb-6 flex-row justify-between items-center">
+          <View className="flex-row items-center">
+            <Ionicons name="add-outline" size={20} color="#fff" style={{ marginRight: 10 }} />
+            <View>
+              <Text className="text-white font-semibold">Switch Routine</Text>
+              <Text className="text-gray-400 text-xs">Choose a different workout split</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+        </TouchableOpacity>
+
+        {/* Today’s Workout */}
+        <Text className="text-gray-300 text-sm font-semibold mb-3">Today’s Workout</Text>
+        <View className="bg-neutral-900 rounded-2xl overflow-hidden mb-6">
+          <Image source={{ uri: "https://images.unsplash.com/photo-1605296867304-46d5465a13f1" }} className="w-full h-40" resizeMode="cover" />
+          <View className="p-4">
+            <Text className="text-white font-semibold">Pull Day</Text>
+            <Text className="text-gray-400 text-xs">7 exercises • 55-65 min</Text>
+          </View>
         </View>
-      </Modal>
-    </ScrollView>
+
+        {/* History */}
+        <Text className="text-gray-300 text-sm font-semibold mb-3">History</Text>
+        <View className="flex-row justify-between mb-4">
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, idx) => (
+            <Text key={idx} className={`${day === "Thu" ? "text-blue-400" : "text-gray-400"} font-semibold`}>{day}</Text>
+          ))}
+        </View>
+
+        {[
+          { name: "Leg Day", info: "6 exercises • 55 min" },
+          { name: "Push Day", info: "3 exercises • 60 min" },
+          { name: "Upper Body", info: "6 exercises • 50 min" },
+        ].map((w, idx) => (
+          <TouchableOpacity key={idx} className="bg-neutral-900 p-4 rounded-2xl mb-3 flex-row items-center">
+            <Ionicons name="calendar-outline" size={18} color="#fff" />
+            <View className="ml-3">
+              <Text className="text-white font-semibold">{w.name}</Text>
+              <Text className="text-gray-400 text-xs">{w.info}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-function getWeekId(date = new Date()) {
-  const d = new Date(date);
-  d.setDate(d.getDate() - d.getDay());
-  return d.toISOString().slice(0, 10);
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  content: { padding: 16 },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: { color: '#fff', fontSize: 18 },
-  dayCard: { marginBottom: 16 },
-  todayCard: { borderWidth: 1, borderColor: '#444' },
-  dayTitle: { color: '#fff', fontSize: 18, marginBottom: 8 },
-  exerciseRow: { flexDirection: 'row', marginBottom: 8 },
-  exerciseName: { color: '#fff', fontSize: 16 },
-  exerciseDetail: { color: '#ccc', fontSize: 14 },
-  exerciseDesc: { color: '#888', fontSize: 12 },
-  actions: { justifyContent: 'center', marginLeft: 8 },
-  swap: { color: '#4af', marginBottom: 4 },
-  complete: { color: '#5f5' },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#111',
-    padding: 16,
-    borderRadius: 8,
-    width: '80%',
-  },
-  modalTitle: { color: '#fff', fontSize: 18, marginBottom: 8 },
-  input: {
-    backgroundColor: '#222',
-    color: '#fff',
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 12,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-});
