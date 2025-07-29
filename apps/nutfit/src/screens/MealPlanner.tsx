@@ -1,3 +1,4 @@
+// MealPlanner.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -24,24 +25,50 @@ export default function MealPlanner() {
     name: "Chicken Avocado Salad",
     macros: "450 kcal • 32g P • 20g C • 29g F",
     image: placeholderImage,
+    ingredients: [],
+    instructions: [],
   };
 
   const staticMeals = [
-    { name: "Oatmeal with Berries", macros: "320 kcal • 7g P • 55g C • 10g F" },
-    { name: "Grilled Salmon", macros: "600 kcal • 55g P • 8g C • 38g F" },
-    { name: "Veggie Omelette", macros: "350 kcal • 22g P • 8g C • 26g F" },
+    {
+      name: "Oatmeal with Berries",
+      macros: "320 kcal • 7g P • 55g C • 10g F",
+      ingredients: [],
+      instructions: [],
+    },
+    {
+      name: "Grilled Salmon",
+      macros: "600 kcal • 55g P • 8g C • 38g F",
+      ingredients: [],
+      instructions: [],
+    },
+    {
+      name: "Veggie Omelette",
+      macros: "350 kcal • 22g P • 8g C • 26g F",
+      ingredients: [],
+      instructions: [],
+    },
   ];
 
+  // ✅ Normalizes meal object for navigation
   const safeNavigate = (meal: any) => {
-    navigation.navigate("MealDetails", {
-      meal: {
-        name: meal.name || "Meal",
-        macros: `${meal.calories ?? 0} kcal • ${meal.protein ?? 0}g P • ${meal.carbs ?? 0}g C • ${meal.fat ?? 0}g F`,
-        ingredients: meal.ingredients || [],
-        instructions: meal.instructions || "No instructions available",
-        image: meal.image || placeholderImage,
-      },
-    });
+    const normalizedMeal = {
+      name: meal.name || "Meal",
+      mealType: meal.mealType || "",
+      calories: meal.calories ?? parseInt(meal.macros?.match(/\d+/)?.[0] || "0"),
+      protein: meal.protein ?? parseInt(meal.macros?.match(/(\d+)g P/)?.[1] || "0"),
+      carbs: meal.carbs ?? parseInt(meal.macros?.match(/(\d+)g C/)?.[1] || "0"),
+      fat: meal.fat ?? parseInt(meal.macros?.match(/(\d+)g F/)?.[1] || "0"),
+      ingredients: Array.isArray(meal.ingredients) ? meal.ingredients : [],
+      instructions: Array.isArray(meal.instructions)
+        ? meal.instructions
+        : typeof meal.instructions === "string"
+        ? [meal.instructions]
+        : [],
+      image: meal.image || placeholderImage,
+    };
+
+    navigation.navigate("MealDetails", { meal: normalizedMeal });
   };
 
   const handleAIPlan = async () => {

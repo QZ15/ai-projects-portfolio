@@ -5,20 +5,17 @@ import { Ionicons } from "@expo/vector-icons";
 
 // Screens
 import DashboardScreen from "../screens/DashboardScreen";
-import MealPlanner from "../screens/MealPlanner";
-import MealDetailsScreen from "../screens/MealDetailsScreen";
-import MealPlanDetailsScreen from "../screens/MealPlanDetailsScreen"; // ✅ New
 import WorkoutPlannerScreen from "../screens/WorkoutPlannerScreen";
 import WorkoutDetailsScreen from "../screens/WorkoutDetailsScreen";
 import Scheduler from "../screens/Scheduler";
 import ScheduleDetailsScreen from "../screens/ScheduleDetailsScreen";
 const Progress = lazy(() => import("../screens/Progress"));
 import SettingsScreen from "../screens/SettingsScreen";
+import MealStackNavigator from "./MealStackNavigator";
 
 // Navigators
 const Tab = createBottomTabNavigator();
 const WorkoutStack = createNativeStackNavigator();
-const MealStack = createNativeStackNavigator();
 const ScheduleStack = createNativeStackNavigator();
 
 // --- Workout Stack ---
@@ -28,17 +25,6 @@ function WorkoutStackNavigator() {
       <WorkoutStack.Screen name="WorkoutPlanner" component={WorkoutPlannerScreen} />
       <WorkoutStack.Screen name="WorkoutDetails" component={WorkoutDetailsScreen} />
     </WorkoutStack.Navigator>
-  );
-}
-
-// --- Meal Stack ---
-function MealStackNavigator() {
-  return (
-    <MealStack.Navigator screenOptions={{ headerShown: false }}>
-      <MealStack.Screen name="MealPlanner" component={MealPlanner} />
-      <MealStack.Screen name="MealDetails" component={MealDetailsScreen} />
-      <MealStack.Screen name="MealPlanDetails" component={MealPlanDetailsScreen} /> 
-    </MealStack.Navigator>
   );
 }
 

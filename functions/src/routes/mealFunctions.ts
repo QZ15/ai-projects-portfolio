@@ -25,22 +25,32 @@ You are a meal generator.
 Create 1 healthy meal based on: ${ingredients?.length ? ingredients.join(", ") : "any ingredients"}.
 Preferences: ${preferences || "None"}.
 
-Respond ONLY with valid JSON object (no text outside JSON):
+Respond ONLY with valid JSON:
 {
   "name": "Grilled Chicken with Rice",
   "calories": 450,
   "protein": 35,
   "carbs": 40,
   "fat": 12,
-  "ingredients": ["Chicken breast", "Rice", "Olive oil", "Garlic"],
-  "instructions": "Grill chicken, cook rice, combine, season."
+  "ingredients": [
+    {"item": "Chicken breast", "quantity": "200g"},
+    {"item": "Rice", "quantity": "150g"},
+    {"item": "Olive oil", "quantity": "1 tbsp"},
+    {"item": "Garlic", "quantity": "2 cloves"}
+  ],
+  "instructions": [
+    "Preheat grill to medium-high heat.",
+    "Season chicken with salt, pepper, and garlic.",
+    "Grill chicken for 6-7 minutes each side until cooked through.",
+    "Cook rice according to package instructions.",
+    "Serve chicken over rice, drizzle with olive oil."
+  ]
 }`;
 
   try {
     const res = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
     });
 
     const parsed = safeParseJSON(res.choices[0].message?.content || "{}");
@@ -52,17 +62,28 @@ Respond ONLY with valid JSON object (no text outside JSON):
   }
 });
 
+
 // --- Full Meal Plan ---
 export const generateMealPlan = functions.https.onCall(async (data) => {
   const { calories, protein, carbs, fat, preferences } = data;
 
   const prompt = `
-You are a meal plan generator.
-Create a meal plan for a full day: Breakfast, Lunch, Dinner, Snack.
+You are a professional meal planning assistant.
+Create a full-day meal plan with 4 meals: Breakfast, Lunch, Dinner, Snack.
 Target macros: ${calories} kcal, ${protein}g P, ${carbs}g C, ${fat}g F.
 Preferences: ${preferences || "None"}.
 
-Respond ONLY with valid JSON array (no text outside JSON):
+For EACH meal, include:
+- mealType: "Breakfast", "Lunch", "Dinner", or "Snack"
+- name: Full descriptive dish name (e.g. "Grilled Salmon with Quinoa")
+- calories: number
+- protein: number
+- carbs: number
+- fat: number
+- ingredients: array of objects with { "item": string, "quantity": string }
+- instructions: array of short, numbered steps
+
+Respond ONLY with valid JSON array of meals, like this:
 [
   {
     "mealType": "Breakfast",
@@ -71,38 +92,17 @@ Respond ONLY with valid JSON array (no text outside JSON):
     "protein": 30,
     "carbs": 20,
     "fat": 15,
-    "ingredients": ["Eggs", "Spinach", "Toast", "Olive oil"],
-    "instructions": "Beat eggs, cook with spinach, toast bread."
-  },
-  {
-    "mealType": "Lunch",
-    "name": "Grilled Salmon with Quinoa",
-    "calories": 500,
-    "protein": 35,
-    "carbs": 45,
-    "fat": 18,
-    "ingredients": ["Salmon", "Quinoa", "Olive oil", "Garlic"],
-    "instructions": "Grill salmon, cook quinoa, serve together."
-  },
-  {
-    "mealType": "Dinner",
-    "name": "Chicken Stir-Fry",
-    "calories": 600,
-    "protein": 40,
-    "carbs": 50,
-    "fat": 20,
-    "ingredients": ["Chicken breast", "Mixed vegetables", "Soy sauce"],
-    "instructions": "Cook chicken, add vegetables, stir-fry with soy sauce."
-  },
-  {
-    "mealType": "Snack",
-    "name": "Greek Yogurt with Berries",
-    "calories": 200,
-    "protein": 15,
-    "carbs": 20,
-    "fat": 5,
-    "ingredients": ["Greek yogurt", "Berries", "Honey"],
-    "instructions": "Mix all ingredients in a bowl."
+    "ingredients": [
+      {"item": "Eggs", "quantity": "3 large"},
+      {"item": "Spinach", "quantity": "1 cup"},
+      {"item": "Whole grain toast", "quantity": "2 slices"}
+    ],
+    "instructions": [
+      "Beat the eggs with salt and pepper.",
+      "Sauté spinach in a pan with olive oil.",
+      "Pour eggs over spinach and cook until set.",
+      "Toast bread and serve alongside."
+    ]
   }
 ]`;
 
@@ -110,11 +110,12 @@ Respond ONLY with valid JSON array (no text outside JSON):
     const res = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
     });
 
     const parsed = safeParseJSON(res.choices[0].message?.content || "[]");
-    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid or empty meal plan");
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error("Empty meal plan");
+    }
     return parsed;
   } catch (error: any) {
     console.error("❌ Error generating meal plan:", error);
