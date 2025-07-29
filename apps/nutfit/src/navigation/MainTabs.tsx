@@ -7,20 +7,19 @@ import { Ionicons } from "@expo/vector-icons";
 import DashboardScreen from "../screens/DashboardScreen";
 import MealPlanner from "../screens/MealPlanner";
 import MealDetailsScreen from "../screens/MealDetailsScreen";
+import MealPlanDetailsScreen from "../screens/MealPlanDetailsScreen"; // ✅ New
 import WorkoutPlannerScreen from "../screens/WorkoutPlannerScreen";
 import WorkoutDetailsScreen from "../screens/WorkoutDetailsScreen";
 import Scheduler from "../screens/Scheduler";
 import ScheduleDetailsScreen from "../screens/ScheduleDetailsScreen";
 const Progress = lazy(() => import("../screens/Progress"));
 import SettingsScreen from "../screens/SettingsScreen";
-import ProfileScreen from "../screens/ProfileScreen"; // Added for settings stack
 
 // Navigators
 const Tab = createBottomTabNavigator();
 const WorkoutStack = createNativeStackNavigator();
 const MealStack = createNativeStackNavigator();
 const ScheduleStack = createNativeStackNavigator();
-const SettingsStack = createNativeStackNavigator();
 
 // --- Workout Stack ---
 function WorkoutStackNavigator() {
@@ -38,6 +37,7 @@ function MealStackNavigator() {
     <MealStack.Navigator screenOptions={{ headerShown: false }}>
       <MealStack.Screen name="MealPlanner" component={MealPlanner} />
       <MealStack.Screen name="MealDetails" component={MealDetailsScreen} />
+      <MealStack.Screen name="MealPlanDetails" component={MealPlanDetailsScreen} /> 
     </MealStack.Navigator>
   );
 }
@@ -49,16 +49,6 @@ function ScheduleStackNavigator() {
       <ScheduleStack.Screen name="Scheduler" component={Scheduler} />
       <ScheduleStack.Screen name="ScheduleDetails" component={ScheduleDetailsScreen} />
     </ScheduleStack.Navigator>
-  );
-}
-
-// --- Settings Stack ---
-function SettingsStackNavigator() {
-  return (
-    <SettingsStack.Navigator screenOptions={{ headerShown: false }}>
-      <SettingsStack.Screen name="SettingsMain" component={SettingsScreen} />
-      <SettingsStack.Screen name="Profile" component={ProfileScreen} />
-    </SettingsStack.Navigator>
   );
 }
 
@@ -94,7 +84,7 @@ export default function MainTabs() {
           </Suspense>
         )}
       />
-      <Tab.Screen name="Settings" component={SettingsStackNavigator} />
+      <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
 }
