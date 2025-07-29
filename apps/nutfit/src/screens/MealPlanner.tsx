@@ -13,9 +13,11 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { generateSingleMeal, generateMealPlan } from "../services/mealService";
+import { useMealFilters } from "../context/MealFilterContext";
 
 export default function MealPlanner() {
   const navigation = useNavigation();
+  const { filters } = useMealFilters();
   const [loading, setLoading] = useState<string | null>(null);
   const [planMeals, setPlanMeals] = useState<any[]>([]);
 
@@ -50,7 +52,6 @@ export default function MealPlanner() {
     },
   ];
 
-  // ✅ Normalizes meal object for navigation
   const safeNavigate = (meal: any) => {
     const normalizedMeal = {
       name: meal.name || "Meal",
@@ -67,14 +68,22 @@ export default function MealPlanner() {
         : [],
       image: meal.image || placeholderImage,
     };
-
     navigation.navigate("MealDetails", { meal: normalizedMeal });
   };
 
   const handleAIPlan = async () => {
     try {
       setLoading("plan");
-      const plan = await generateMealPlan(2000, 150, 200, 70, "balanced");
+      console.log("📤 Sending filters to Firebase:", filters); // ✅ Debug log
+      const plan = await generateMealPlan(
+        filters.calories,
+        filters.protein,
+        filters.carbs,
+        filters.fat,
+        filters.preferences,
+        filters.dislikes,
+        filters.mealsPerDay
+      );
       if (!Array.isArray(plan) || plan.length === 0) {
         throw new Error("Empty meal plan");
       }
@@ -91,9 +100,7 @@ export default function MealPlanner() {
     try {
       setLoading("single");
       const meal = await generateSingleMeal(["chicken", "avocado"], "high protein");
-      if (!meal || !meal.name) {
-        throw new Error("Empty single meal");
-      }
+      if (!meal || !meal.name) throw new Error("Empty single meal");
       safeNavigate(meal);
     } catch (err) {
       console.error("❌ Error generating single meal:", err);
@@ -129,12 +136,25 @@ export default function MealPlanner() {
                 <Text className="text-white text-base font-semibold">
                   {loading === "plan" ? "Generating..." : "AI Meal Plan"}
                 </Text>
-                <Text className="text-gray-400 text-xs mt-0.5">Generate a meal plan with AI</Text>
+                <Text className="text-gray-400 text-xs mt-0.5">
+                  {filters.calories} kcal • {filters.protein}g P • {filters.carbs}g C • {filters.fat}g F
+                </Text>
               </View>
             </View>
-            {loading === "plan"
-              ? <ActivityIndicator color="#fff" />
-              : <Ionicons name="chevron-forward" size={18} color="#6B7280" />}
+
+            <View className="flex-row items-center">
+              <TouchableOpacity onPress={() => navigation.navigate("MealPlanFilters")}>
+                <Ionicons
+                  name="settings-outline"
+                  size={20}
+                  color="#6B7280"
+                  style={{ marginRight: 8 }}
+                />
+              </TouchableOpacity>
+              {loading === "plan"
+                ? <ActivityIndicator color="#fff" />
+                : <Ionicons name="chevron-forward" size={18} color="#6B7280" />}
+            </View>
           </TouchableOpacity>
 
           {/* Select Ingredients */}
@@ -192,22 +212,6 @@ export default function MealPlanner() {
             ))}
           </>
         )}
-
-        {/* Your Meals */}
-        <Text className="text-white text-lg font-semibold mb-3 mt-4">Your Meals</Text>
-        {staticMeals.map((meal, idx) => (
-          <TouchableOpacity
-            key={idx}
-            className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
-            onPress={() => safeNavigate(meal)}
-          >
-            <View>
-              <Text className="text-white font-medium">{meal.name}</Text>
-              <Text className="text-gray-400 text-xs mt-0.5">{meal.macros}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-          </TouchableOpacity>
-        ))}
       </ScrollView>
     </SafeAreaView>
   );

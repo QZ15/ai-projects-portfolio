@@ -63,15 +63,18 @@ Respond ONLY with valid JSON:
 });
 
 
-// --- Full Meal Plan ---
+// --- Full Meal Plan with Filters ---
 export const generateMealPlan = functions.https.onCall(async (data) => {
-  const { calories, protein, carbs, fat, preferences } = data;
+  const { calories, protein, carbs, fat, preferences, dislikes, mealsPerDay } = data;
 
   const prompt = `
 You are a professional meal planning assistant.
-Create a full-day meal plan with 4 meals: Breakfast, Lunch, Dinner, Snack.
+Create a full-day meal plan with exactly ${mealsPerDay} meals.
 Target macros: ${calories} kcal, ${protein}g P, ${carbs}g C, ${fat}g F.
+Ensure total macros meet the target values within ±5% for calories, protein, carbs, and fat.
 Preferences: ${preferences || "None"}.
+Absolutely exclude the following foods: ${dislikes}. These ingredients must NOT appear in any meal.
+If they are common in certain meals, substitute them with similar nutritional replacements.
 
 For EACH meal, include:
 - mealType: "Breakfast", "Lunch", "Dinner", or "Snack"
