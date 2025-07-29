@@ -19,7 +19,7 @@ export default function RootNavigator() {
     <NavigationContainer ref={navigationRef} theme={DarkTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!user || !onboarded ? (
-          <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
+          <Stack.Screen name="Auth" component={OnboardingNavigator} />
         ) : (
           <Stack.Screen name="Main" component={MainTabs} />
         )}
