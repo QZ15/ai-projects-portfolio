@@ -3,25 +3,50 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 
+// Screens
 import DashboardScreen from "../screens/DashboardScreen";
 import MealPlanner from "../screens/MealPlanner";
+import MealDetailsScreen from "../screens/MealDetailsScreen";
 import WorkoutPlannerScreen from "../screens/WorkoutPlannerScreen";
 import WorkoutDetailsScreen from "../screens/WorkoutDetailsScreen";
 import Scheduler from "../screens/Scheduler";
+import ScheduleDetailsScreen from "../screens/ScheduleDetailsScreen";
 const Progress = lazy(() => import("../screens/Progress"));
 import SettingsScreen from "../screens/SettingsScreen";
 
-// Bottom Tabs
+// Navigators
 const Tab = createBottomTabNavigator();
 const WorkoutStack = createNativeStackNavigator();
+const MealStack = createNativeStackNavigator();
+const ScheduleStack = createNativeStackNavigator();
 
-// Workout Stack (for Workout Planner + Details)
+// --- Workout Stack ---
 function WorkoutStackNavigator() {
   return (
     <WorkoutStack.Navigator screenOptions={{ headerShown: false }}>
       <WorkoutStack.Screen name="WorkoutPlanner" component={WorkoutPlannerScreen} />
       <WorkoutStack.Screen name="WorkoutDetails" component={WorkoutDetailsScreen} />
     </WorkoutStack.Navigator>
+  );
+}
+
+// --- Meal Stack ---
+function MealStackNavigator() {
+  return (
+    <MealStack.Navigator screenOptions={{ headerShown: false }}>
+      <MealStack.Screen name="MealPlanner" component={MealPlanner} />
+      <MealStack.Screen name="MealDetails" component={MealDetailsScreen} />
+    </MealStack.Navigator>
+  );
+}
+
+// --- Schedule Stack ---
+function ScheduleStackNavigator() {
+  return (
+    <ScheduleStack.Navigator screenOptions={{ headerShown: false }}>
+      <ScheduleStack.Screen name="Scheduler" component={Scheduler} />
+      <ScheduleStack.Screen name="ScheduleDetails" component={ScheduleDetailsScreen} />
+    </ScheduleStack.Navigator>
   );
 }
 
@@ -46,9 +71,9 @@ export default function MainTabs() {
       })}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="Meals" component={MealPlanner} />
+      <Tab.Screen name="Meals" component={MealStackNavigator} />
       <Tab.Screen name="Workouts" component={WorkoutStackNavigator} />
-      <Tab.Screen name="Schedule" component={Scheduler} />
+      <Tab.Screen name="Schedule" component={ScheduleStackNavigator} />
       <Tab.Screen
         name="Progress"
         children={() => (

@@ -1,75 +1,95 @@
 import React from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useNavigation } from "@react-navigation/native";
 
 export default function MealPlanner() {
+  const navigation = useNavigation();
+
+  const todayMeal = {
+    name: "Chicken Avocado Salad",
+    macros: "450 kcal • 32g P • 20g C • 29g F",
+    image: require("../../assets/mock/mealofday.png"),
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }}>
-        
         {/* Header */}
         <View className="flex-row justify-between items-center mt-3 mb-6">
           <Text className="text-white text-[28px] font-bold">Meal Planner</Text>
-          <TouchableOpacity className="p-2 bg-neutral-900 rounded-xl">
-            <Ionicons name="filter-outline" size={20} color="#fff" />
+          <TouchableOpacity>
+            <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
 
-        {/* Actions */}
-        <TouchableOpacity className="bg-neutral-900 p-4 rounded-2xl mb-3 flex-row justify-between items-center">
-          <View className="flex-row items-center">
-            <Ionicons name="camera-outline" size={20} color="#fff" style={{ marginRight: 10 }} />
-            <View>
-              <Text className="text-white font-semibold">AI Meal Plan</Text>
-              <Text className="text-gray-400 text-xs">Generate a meal plan with AI</Text>
+        {/* Action Buttons */}
+        <View className="mb-6">
+          <TouchableOpacity className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3">
+            <View className="flex-row items-center">
+              <Ionicons name="restaurant-outline" size={20} color="#fff" />
+              <View className="ml-3">
+                <Text className="text-white text-base font-semibold">AI Meal Plan</Text>
+                <Text className="text-gray-400 text-xs mt-0.5">
+                  Generate a meal plan with AI
+                </Text>
+              </View>
             </View>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-        </TouchableOpacity>
+            <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+          </TouchableOpacity>
 
-        <TouchableOpacity className="bg-neutral-900 p-4 rounded-2xl mb-6 flex-row justify-between items-center">
-          <View className="flex-row items-center">
-            <Ionicons name="add-outline" size={20} color="#fff" style={{ marginRight: 10 }} />
-            <View>
-              <Text className="text-white font-semibold">Select Ingredients</Text>
-              <Text className="text-gray-400 text-xs">Generate a meal based on what you have</Text>
+          <TouchableOpacity className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center">
+            <View className="flex-row items-center">
+              <Ionicons name="add-outline" size={20} color="#fff" />
+              <View className="ml-3">
+                <Text className="text-white text-base font-semibold">Select Ingredients</Text>
+                <Text className="text-gray-400 text-xs mt-0.5">
+                  Generate a meal based on what you have
+                </Text>
+              </View>
             </View>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-        </TouchableOpacity>
+            <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
 
-        {/* Meal of the Day */}
-        <Text className="text-gray-300 text-sm font-semibold mb-3">Meal of the Day</Text>
-        <View className="bg-neutral-900 rounded-2xl overflow-hidden mb-6">
-          <Image source={require("../../assets/mock/mealofday.png")} className="w-full h-40" resizeMode="cover" />
+        {/* Featured Meal */}
+        <Text className="text-white text-lg font-semibold mb-3">Meal of the Day</Text>
+        <TouchableOpacity
+          className="bg-neutral-900 rounded-2xl overflow-hidden mb-6"
+          onPress={() => navigation.navigate("MealDetails", { meal: todayMeal })}
+        >
+          <Image source={todayMeal.image} className="w-full h-40" resizeMode="cover" />
           <View className="p-4">
-            <Text className="text-white font-semibold">Chicken Avocado Salad</Text>
-            <Text className="text-gray-400 text-xs mt-1">450 kcal • 32g P • 20g C • 29g F</Text>
+            <Text className="text-white text-lg font-semibold">{todayMeal.name}</Text>
+            <Text className="text-gray-400 text-sm mt-1">{todayMeal.macros}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
-        {/* Your Meals */}
-        <Text className="text-gray-300 text-sm font-semibold mb-3">Your Meals</Text>
-        <View className="flex-row justify-between mb-4">
-          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, idx) => (
-            <TouchableOpacity key={idx}>
-              <Text className={`text-sm font-medium ${day === "Thu" ? "text-blue-400" : "text-gray-400"}`}>{day}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {[ 
+        {/* Meals History */}
+        <Text className="text-white text-lg font-semibold mb-3">Your Meals</Text>
+        {[
           { name: "Oatmeal with Berries", macros: "320 kcal • 7g P • 55g C • 10g F" },
           { name: "Grilled Salmon", macros: "600 kcal • 55g P • 8g C • 38g F" },
           { name: "Veggie Omelette", macros: "350 kcal • 22g P • 8g C • 26g F" },
         ].map((meal, idx) => (
-          <View key={idx} className="bg-neutral-900 p-4 rounded-2xl mb-3 flex-row justify-between items-center">
+          <TouchableOpacity
+            key={idx}
+            className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
+            onPress={() => navigation.navigate("MealDetails", { meal })}
+          >
             <View>
-              <Text className="text-white font-semibold">{meal.name}</Text>
-              <Text className="text-gray-400 text-xs">{meal.macros}</Text>
+              <Text className="text-white font-medium">{meal.name}</Text>
+              <Text className="text-gray-400 text-xs mt-0.5">{meal.macros}</Text>
             </View>
-            <Ionicons name="bookmark-outline" size={18} color="#6B7280" />
-          </View>
+            <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </SafeAreaView>

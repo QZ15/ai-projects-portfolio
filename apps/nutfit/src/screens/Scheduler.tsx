@@ -1,153 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  Modal,
-  Button,
-  ScrollView,
-} from 'react-native';
-import { DayTabs, ReminderItem, Reminder } from '../components/scheduler';
-import useAuth from '../hooks/useAuth';
-import {
-  getReminders,
-  saveReminder,
-  updateReminder,
-  logCompletion,
-} from '../services/firebase';
-import { scheduleAll } from '../services/notifications';
+import React from "react";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Scheduler() {
-  const { user } = useAuth();
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [selected, setSelected] = useState(0);
-  const [editing, setEditing] = useState<Reminder | null>(null);
-  const [label, setLabel] = useState('');
-  const [time, setTime] = useState('12:00');
+  const navigation = useNavigation();
 
-  useEffect(() => {
-    if (!user) return;
-    getReminders(user.uid).then(setReminders).catch(console.error);
-  }, [user]);
-
-  useEffect(() => {
-    scheduleAll(reminders.filter((r) => r.enabled)).catch(console.error);
-  }, [reminders]);
-
-  const openAdd = () => {
-    setEditing(null);
-    setLabel('');
-    setTime('12:00');
-  };
-
-  const save = async () => {
-    if (!user) return;
-    if (editing) {
-      const updated = { ...editing, label, time };
-      setReminders((r) => r.map((x) => (x.id === editing.id ? updated : x)));
-      await updateReminder(user.uid, editing.id, { label, time });
-    } else {
-      const newRem: Omit<Reminder, 'id'> = {
-        label,
-        day: selected,
-        time,
-        type: 'habit',
-        enabled: true,
-      };
-      await saveReminder(user.uid, newRem);
-      const list = await getReminders(user.uid);
-      setReminders(list);
-    }
-    setEditing(null);
-  };
-
-  const toggle = async (rem: Reminder, value: boolean) => {
-    if (!user) return;
-    setReminders((r) => r.map((x) => (x.id === rem.id ? { ...x, enabled: value } : x)));
-    await updateReminder(user.uid, rem.id, { enabled: value });
-  };
-
-  const complete = async (rem: Reminder) => {
-    if (!user) return;
-    const date = new Date().toISOString().slice(0, 10);
-    await logCompletion(user.uid, date, { label: rem.label, type: rem.type });
-  };
-
-  const edit = (rem: Reminder) => {
-    setEditing(rem);
-    setLabel(rem.label);
-    setTime(rem.time);
-  };
-
-  const visible = reminders.filter((r) => r.day === selected);
+  const events = [
+    {
+      title: "Morning Workout",
+      time: "7:00 AM - 8:00 AM",
+      description: "Full body strength training session",
+    },
+    {
+      title: "Lunch Meal Prep",
+      time: "12:00 PM - 12:30 PM",
+      description: "Prep chicken and veggies for the week",
+    },
+    {
+      title: "Evening Yoga",
+      time: "6:00 PM - 6:30 PM",
+      description: "Relaxing yoga flow",
+    },
+  ];
 
   return (
-    <View style={styles.container}>
-      <DayTabs selected={selected} onSelect={setSelected} />
-      <ScrollView style={styles.list} contentContainerStyle={{ padding: 16 }}>
-        {visible.map((rem) => (
-          <ReminderItem
-            key={rem.id}
-            reminder={rem}
-            onToggle={toggle}
-            onComplete={complete}
-            onEdit={edit}
-          />
-        ))}
-        <Button title="Add Reminder" onPress={openAdd} />
-      </ScrollView>
-      <Modal visible={editing !== null || label !== ''} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{editing ? 'Edit Reminder' : 'New Reminder'}</Text>
-            <TextInput
-              value={label}
-              onChangeText={setLabel}
-              placeholder="Label"
-              placeholderTextColor="#888"
-              style={styles.input}
-            />
-            <TextInput
-              value={time}
-              onChangeText={setTime}
-              placeholder="HH:MM"
-              placeholderTextColor="#888"
-              style={styles.input}
-            />
-            <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={() => setEditing(null)} />
-              <Button title="Save" onPress={save} />
-            </View>
-          </View>
+    <SafeAreaView className="flex-1 bg-black">
+      <ScrollView
+        className="flex-1 px-5"
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        {/* Header */}
+        <View className="flex-row justify-between items-center mt-3 mb-6">
+          <Text className="text-white text-[28px] font-bold">Scheduler</Text>
+          <TouchableOpacity className="p-2 bg-neutral-900 rounded-xl">
+            <Ionicons name="add-outline" size={20} color="#fff" />
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </View>
+
+        {/* Events List */}
+        {events.map((event, idx) => (
+          <TouchableOpacity
+            key={idx}
+            className="bg-neutral-900 p-4 rounded-2xl mb-3 flex-row items-center"
+            onPress={() => navigation.navigate("ScheduleDetails", { event })}
+          >
+            <Ionicons name="calendar-outline" size={18} color="#fff" />
+            <View className="ml-3">
+              <Text className="text-white font-semibold">{event.title}</Text>
+              <Text className="text-gray-400 text-xs">{event.time}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  list: { flex: 1 },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#111',
-    padding: 16,
-    borderRadius: 8,
-    width: '80%',
-  },
-  modalTitle: { color: '#fff', fontSize: 18, marginBottom: 8 },
-  input: {
-    backgroundColor: '#222',
-    color: '#fff',
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 12,
-  },
-  modalButtons: { flexDirection: 'row', justifyContent: 'space-between' },
-});

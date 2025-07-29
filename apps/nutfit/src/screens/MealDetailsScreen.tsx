@@ -10,15 +10,15 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRoute, useNavigation } from "@react-navigation/native";
 
-export default function WorkoutDetailsScreen() {
+export default function MealDetailsScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { workout } = route.params || {};
+  const { meal } = route.params || {};
 
-  // Fallback to prevent crashes if workout is missing or has wrong data
-  const workoutTitle = typeof workout?.title === "string" ? workout.title : "Workout";
-  const workoutDetails =
-    typeof workout?.details === "string" ? workout.details : "Details not available.";
+  // Validate props to avoid crashes
+  const mealName = typeof meal?.name === "string" ? meal.name : "Meal";
+  const mealMacros =
+    typeof meal?.macros === "string" ? meal.macros : "Nutrition info not available.";
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -28,14 +28,14 @@ export default function WorkoutDetailsScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
             <Ionicons name="arrow-back-outline" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text className="text-white text-[20px] font-bold">Workout Details</Text>
+          <Text className="text-white text-[20px] font-bold">Meal Details</Text>
           <View className="w-8" />
         </View>
 
-        {/* Image */}
-        {workout?.image ? (
+        {/* Meal Image */}
+        {meal?.image ? (
           <Image
-            source={workout.image}
+            source={meal.image}
             className="w-full h-48 rounded-2xl mb-6"
             resizeMode="cover"
           />
@@ -45,15 +45,15 @@ export default function WorkoutDetailsScreen() {
           </View>
         )}
 
-        {/* Workout Info */}
+        {/* Meal Info */}
         <View className="bg-neutral-900 p-4 rounded-2xl mb-6">
-          <Text className="text-white text-lg font-semibold">{workoutTitle}</Text>
-          <Text className="text-gray-400 text-sm mt-1">{workoutDetails}</Text>
+          <Text className="text-white text-lg font-semibold">{mealName}</Text>
+          <Text className="text-gray-400 text-sm mt-1">{mealMacros}</Text>
         </View>
 
         {/* Actions */}
         <TouchableOpacity className="bg-blue-500 p-4 rounded-2xl items-center">
-          <Text className="text-white font-semibold">Start Workout</Text>
+          <Text className="text-white font-semibold">Add to Meal Plan</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
