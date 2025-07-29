@@ -1,22 +1,17 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-export default function WorkoutDetailsScreen({ navigation }) {
-  // Example workout data — replace with dynamic plan later
-  const workout = {
-    name: "Pull Day",
-    duration: "55-65 min",
-    exercises: [
-      { name: "Pull-ups", sets: "4 x 8-10" },
-      { name: "Barbell Rows", sets: "4 x 8-10" },
-      { name: "Lat Pulldown", sets: "3 x 10-12" },
-      { name: "Seated Cable Row", sets: "3 x 10-12" },
-      { name: "Face Pulls", sets: "3 x 12-15" },
-      { name: "Hammer Curls", sets: "3 x 10-12" },
-      { name: "Incline Dumbbell Curls", sets: "3 x 10-12" },
-    ],
+export default function WorkoutDetailsScreen() {
+  const route = useRoute();
+  const navigation = useNavigation();
+
+  const { workoutName, exercises, duration } = route.params as {
+    workoutName: string;
+    exercises: { name: string; sets: number; reps: string }[];
+    duration: string;
   };
 
   return (
@@ -27,45 +22,43 @@ export default function WorkoutDetailsScreen({ navigation }) {
       >
         {/* Header */}
         <View className="flex-row justify-between items-center mt-3 mb-6">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="p-2 bg-neutral-900 rounded-xl"
-          >
-            <Ionicons name="chevron-back" size={20} color="#fff" />
-          </TouchableOpacity>
-          <Text className="text-white text-[20px] font-bold">
-            {workout.name}
+          <Text className="text-white text-[28px] font-bold">
+            {workoutName}
           </Text>
-          <View className="w-8" /> {/* spacer */}
+          <TouchableOpacity
+            className="p-2 bg-neutral-900 rounded-xl"
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="close-outline" size={20} color="#fff" />
+          </TouchableOpacity>
         </View>
 
         {/* Summary */}
-        <View className="bg-neutral-900 rounded-2xl p-4 mb-6">
-          <Text className="text-white font-semibold text-lg">
-            {workout.name}
-          </Text>
-          <Text className="text-gray-400 text-sm mt-1">
-            {workout.exercises.length} exercises • {workout.duration}
+        <View className="bg-neutral-900 p-4 rounded-2xl mb-6">
+          <Text className="text-white font-semibold">
+            {exercises.length} exercises • {duration}
           </Text>
         </View>
 
-        {/* Exercises List */}
-        <Text className="text-gray-300 text-sm font-semibold mb-3">
-          Exercises
-        </Text>
-        {workout.exercises.map((exercise, index) => (
+        {/* Exercise List */}
+        {exercises.map((exercise, idx) => (
           <View
-            key={index}
-            className="bg-neutral-900 rounded-2xl p-4 mb-3 flex-row justify-between items-center"
+            key={idx}
+            className="bg-neutral-900 p-4 rounded-2xl mb-3 flex-row justify-between items-center"
           >
-            <Text className="text-white">{exercise.name}</Text>
-            <Text className="text-gray-400 text-sm">{exercise.sets}</Text>
+            <View>
+              <Text className="text-white font-semibold">{exercise.name}</Text>
+              <Text className="text-gray-400 text-xs">
+                {exercise.sets} sets • {exercise.reps} reps
+              </Text>
+            </View>
+            <Ionicons name="barbell-outline" size={18} color="#6B7280" />
           </View>
         ))}
 
-        {/* Start Workout Button */}
-        <TouchableOpacity className="bg-blue-500 py-4 rounded-full items-center mt-6">
-          <Text className="text-white font-semibold text-lg">Start Workout</Text>
+        {/* Start Workout */}
+        <TouchableOpacity className="bg-blue-500 py-4 rounded-2xl items-center mt-6">
+          <Text className="text-white font-semibold">Start Workout</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
