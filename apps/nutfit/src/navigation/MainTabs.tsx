@@ -13,12 +13,14 @@ import Scheduler from "../screens/Scheduler";
 import ScheduleDetailsScreen from "../screens/ScheduleDetailsScreen";
 const Progress = lazy(() => import("../screens/Progress"));
 import SettingsScreen from "../screens/SettingsScreen";
+import ProfileScreen from "../screens/ProfileScreen"; // Added for settings stack
 
 // Navigators
 const Tab = createBottomTabNavigator();
 const WorkoutStack = createNativeStackNavigator();
 const MealStack = createNativeStackNavigator();
 const ScheduleStack = createNativeStackNavigator();
+const SettingsStack = createNativeStackNavigator();
 
 // --- Workout Stack ---
 function WorkoutStackNavigator() {
@@ -47,6 +49,16 @@ function ScheduleStackNavigator() {
       <ScheduleStack.Screen name="Scheduler" component={Scheduler} />
       <ScheduleStack.Screen name="ScheduleDetails" component={ScheduleDetailsScreen} />
     </ScheduleStack.Navigator>
+  );
+}
+
+// --- Settings Stack ---
+function SettingsStackNavigator() {
+  return (
+    <SettingsStack.Navigator screenOptions={{ headerShown: false }}>
+      <SettingsStack.Screen name="SettingsMain" component={SettingsScreen} />
+      <SettingsStack.Screen name="Profile" component={ProfileScreen} />
+    </SettingsStack.Navigator>
   );
 }
 
@@ -82,7 +94,7 @@ export default function MainTabs() {
           </Suspense>
         )}
       />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
+      <Tab.Screen name="Settings" component={SettingsStackNavigator} />
     </Tab.Navigator>
   );
 }
