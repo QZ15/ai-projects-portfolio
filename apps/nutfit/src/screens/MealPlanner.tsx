@@ -19,6 +19,22 @@ export default function MealPlanner() {
     image: require("../../assets/mock/mealofday.png"),
   };
 
+  const meals = [
+    { name: "Oatmeal with Berries", macros: "320 kcal • 7g P • 55g C • 10g F" },
+    { name: "Grilled Salmon", macros: "600 kcal • 55g P • 8g C • 38g F" },
+    { name: "Veggie Omelette", macros: "350 kcal • 22g P • 8g C • 26g F" },
+  ];
+
+  const safeNavigate = (meal) => {
+    navigation.navigate("MealDetails", {
+      meal: {
+        name: meal.name || "Meal",
+        macros: meal.macros || "Nutrition info not available",
+        image: meal.image || null,
+      },
+    });
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }}>
@@ -63,7 +79,7 @@ export default function MealPlanner() {
         <Text className="text-white text-lg font-semibold mb-3">Meal of the Day</Text>
         <TouchableOpacity
           className="bg-neutral-900 rounded-2xl overflow-hidden mb-6"
-          onPress={() => navigation.navigate("MealDetails", { meal: todayMeal })}
+          onPress={() => safeNavigate(todayMeal)}
         >
           <Image source={todayMeal.image} className="w-full h-40" resizeMode="cover" />
           <View className="p-4">
@@ -74,15 +90,11 @@ export default function MealPlanner() {
 
         {/* Meals History */}
         <Text className="text-white text-lg font-semibold mb-3">Your Meals</Text>
-        {[
-          { name: "Oatmeal with Berries", macros: "320 kcal • 7g P • 55g C • 10g F" },
-          { name: "Grilled Salmon", macros: "600 kcal • 55g P • 8g C • 38g F" },
-          { name: "Veggie Omelette", macros: "350 kcal • 22g P • 8g C • 26g F" },
-        ].map((meal, idx) => (
+        {meals.map((meal, idx) => (
           <TouchableOpacity
             key={idx}
             className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
-            onPress={() => navigation.navigate("MealDetails", { meal })}
+            onPress={() => safeNavigate(meal)}
           >
             <View>
               <Text className="text-white font-medium">{meal.name}</Text>

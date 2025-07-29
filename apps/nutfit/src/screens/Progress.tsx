@@ -1,118 +1,67 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, Button } from 'react-native';
-import { SectionHeader } from '../components/ui';
-import { colors, spacing } from '../theme';
-import useAuth from '../hooks/useAuth';
+import React from "react";
 import {
-  getProgress,
-  getHabits,
-  getProgressFeedback,
-} from '../services/firebase';
-import { syncAppleHealth } from '../services/health';
-import { LineChartCard, PieChartCard } from '../components/progress';
-
-interface ProgressEntry {
-  date: string;
-  weight?: number;
-  bodyFat?: number;
-  caloriesIn?: number;
-  caloriesOut?: number;
-  macros?: { protein: number; carbs: number; fat: number };
-}
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+} from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function Progress() {
-  const { user } = useAuth();
-  const [entries, setEntries] = useState<ProgressEntry[]>([]);
-  const [habits, setHabits] = useState<any[]>([]);
-  const [feedback, setFeedback] = useState('');
-
-  useEffect(() => {
-    if (!user) return;
-    getProgress(user.uid).then(setEntries);
-    getHabits(user.uid).then(setHabits);
-    fetchFeedback();
-  }, [user]);
-
-  async function fetchFeedback() {
-    if (!user) return;
-    try {
-      const res: any = await getProgressFeedback({ uid: user.uid });
-      if (res?.message) setFeedback(res.message);
-    } catch (e) {
-      console.log('feedback error', e);
-    }
-  }
-
-  async function handleSync() {
-    if (user) await syncAppleHealth(user.uid);
-  }
-
-  const labels = entries.map((e) => e.date.slice(5));
+  const progressItems = [
+    { title: "Weight", value: "72 kg", change: "-1.2 kg", detail: "Since last week" },
+    { title: "Body Fat", value: "14%", change: "-0.5%", detail: "Since last week" },
+    { title: "Workouts Completed", value: "5", change: "+2", detail: "This week" },
+    { title: "Calories Burned", value: "3200 kcal", change: "+500", detail: "This week" },
+  ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <SectionHeader>Progress Charts</SectionHeader>
-      <LineChartCard
-        title="Weight"
-        labels={labels}
-        datasets={[{ data: entries.map((e) => e.weight || 0) }]}
-      />
-      <LineChartCard
-        title="Body Fat %"
-        labels={labels}
-        datasets={[{ data: entries.map((e) => e.bodyFat || 0) }]}
-      />
-      <LineChartCard
-        title="Calories"
-        labels={labels}
-        datasets={[
-          { data: entries.map((e) => e.caloriesIn || 0) },
-          { data: entries.map((e) => e.caloriesOut || 0) },
-        ]}
-      />
-      {entries.length > 0 && entries[entries.length - 1].macros && (
-        <PieChartCard
-          title="Macros"
-          slices={[
-            {
-              name: 'Protein',
-              value: entries[entries.length - 1].macros!.protein,
-              color: '#4e79a7',
-            },
-            {
-              name: 'Carbs',
-              value: entries[entries.length - 1].macros!.carbs,
-              color: '#f28e2c',
-            },
-            {
-              name: 'Fat',
-              value: entries[entries.length - 1].macros!.fat,
-              color: '#e15759',
-            },
-          ]}
-        />
-      )}
-
-      <Button title="Sync Now" onPress={handleSync} />
-
-      <SectionHeader>Habit Tracker</SectionHeader>
-      {habits.map((h) => (
-        <View key={h.id} style={{ marginBottom: 8 }}>
-          <Text style={styles.text}>{h.name}</Text>
-          <Text style={styles.text}>Current Streak: {h.currentStreak || 0}</Text>
-          <Text style={styles.text}>Best Streak: {h.bestStreak || 0}</Text>
-          <Text style={styles.text}>Adherence: {h.adherence || 0}%</Text>
+    <SafeAreaView className="flex-1 bg-black">
+      <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Header */}
+        <View className="flex-row justify-between items-center mt-3 mb-6">
+          <Text className="text-white text-[28px] font-bold">Progress</Text>
+          <TouchableOpacity className="p-2 bg-neutral-900 rounded-xl">
+            <Ionicons name="stats-chart-outline" size={22} color="#fff" />
+          </TouchableOpacity>
         </View>
-      ))}
 
-      <SectionHeader>AI Feedback</SectionHeader>
-      <Text style={styles.text}>{feedback}</Text>
-    </ScrollView>
+        {/* Summary */}
+        <Text className="text-white text-lg font-semibold mb-3">Summary</Text>
+        {progressItems.map((item, idx) => (
+          <TouchableOpacity
+            key={idx}
+            className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
+          >
+            <View>
+              <Text className="text-white font-medium">{item.title}</Text>
+              <Text className="text-gray-400 text-xs mt-0.5">{item.detail}</Text>
+            </View>
+            <View className="items-end">
+              <Text className="text-white font-semibold">{item.value}</Text>
+              <Text
+                className={`text-xs mt-0.5 ${
+                  item.change.startsWith("-") ? "text-green-400" : "text-blue-400"
+                }`}
+              >
+                {item.change}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+
+        {/* Quick Actions */}
+        <Text className="text-white text-lg font-semibold mt-6 mb-3">Quick Actions</Text>
+        <TouchableOpacity className="bg-neutral-900 p-4 rounded-2xl flex-row items-center mb-3">
+          <Ionicons name="barbell-outline" size={20} color="#fff" />
+          <Text className="text-white ml-3 font-semibold">Log Workout</Text>
+        </TouchableOpacity>
+        <TouchableOpacity className="bg-neutral-900 p-4 rounded-2xl flex-row items-center">
+          <Ionicons name="restaurant-outline" size={20} color="#fff" />
+          <Text className="text-white ml-3 font-semibold">Log Meal</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md },
-  text: { color: colors.text },
-});

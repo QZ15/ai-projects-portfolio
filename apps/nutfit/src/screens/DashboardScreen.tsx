@@ -80,27 +80,21 @@ export default function DashboardScreen() {
         </TouchableOpacity>
 
         {/* QUICK ACTIONS */}
-        <Text className="text-gray-300 text-sm font-semibold mb-3">
-          QUICK ACTIONS
-        </Text>
+        <Text className="text-gray-300 text-sm font-semibold mb-3">QUICK ACTIONS</Text>
 
         {/* View Today's Meal Plan */}
         <TouchableOpacity
           className="bg-neutral-900 p-4 rounded-2xl mb-3 flex-row items-center"
-          onPress={() => navigation.navigate("MealDetails", { meal: todayMeal })}
+          onPress={() => navigation.navigate("Meals")}
         >
           <Ionicons name="calendar-outline" size={20} color="#fff" />
-          <Text className="text-white ml-3 font-semibold">
-            View Today’s Meal Plan
-          </Text>
+          <Text className="text-white ml-3 font-semibold">View Today’s Meal Plan</Text>
         </TouchableOpacity>
 
         {/* Start Workout */}
         <TouchableOpacity
           className="bg-neutral-900 p-4 rounded-2xl flex-row items-center"
-          onPress={() =>
-            navigation.navigate("WorkoutDetails", { workout: todayWorkout })
-          }
+          onPress={() => navigation.navigate("Workouts")}
         >
           <Ionicons name="barbell-outline" size={20} color="#fff" />
           <Text className="text-white ml-3 font-semibold">Start Workout</Text>
