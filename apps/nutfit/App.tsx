@@ -1,36 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import RootNavigator from './src/navigation/RootNavigator';
-import { StatusBar } from 'expo-status-bar';
-import { ErrorBoundary } from './src/components/ui';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from './src/services/firebase';
+import React, { useEffect, useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import OnboardingNavigator from "./src/navigation/OnboardingNavigator";
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [authReady, setAuthReady] = useState(false);
+  const [initialRoute, setInitialRoute] = useState<"Onboarding" | "Login">("Onboarding");
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setAuthReady(true);
-    });
-
-    return () => unsubscribe();
+    const checkOnboarding = async () => {
+      const hasOnboarded = await AsyncStorage.getItem("hasOnboarded");
+      setInitialRoute(hasOnboarded ? "Login" : "Onboarding");
+    };
+    checkOnboarding();
   }, []);
 
-  if (!authReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-        <ActivityIndicator size="large" color="#ffffff" />
-      </View>
-    );
-  }
-
   return (
-    <ErrorBoundary>
-      <StatusBar style="light" />
-      <RootNavigator /> 
-    </ErrorBoundary>
+    <NavigationContainer>
+      <OnboardingNavigator/>
+    </NavigationContainer>
   );
 }
