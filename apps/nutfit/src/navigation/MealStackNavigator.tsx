@@ -4,6 +4,7 @@ import MealPlanner from "../screens/MealPlanner";
 import MealDetailsScreen from "../screens/MealDetailsScreen";
 import MealPlanFiltersScreen from "../screens/MealPlanFiltersScreen";
 import SelectIngredientsScreen from "../screens/SelectIngredientsScreen";
+import RequestMealScreen from "../screens/RequestMealScreen";
 
 export type MealStackParamList = {
   MealPlanner: undefined;
@@ -11,6 +12,7 @@ export type MealStackParamList = {
   MealPlanDetails: { plan: any[] };
   MealPlanFilters: undefined;
   SelectIngredients: undefined;
+  RequestMeal: undefined;
 };
 
 const Stack = createNativeStackNavigator<MealStackParamList>();
@@ -23,6 +25,7 @@ export default function MealStackNavigator() {
       <Stack.Screen name="MealPlanDetails" component={MealDetailsScreen} />
       <Stack.Screen name="MealPlanFilters" component={MealPlanFiltersScreen} />
       <Stack.Screen name="SelectIngredients" component={SelectIngredientsScreen} />
+      <Stack.Screen name="RequestMeal" component={RequestMealScreen} />
     </Stack.Navigator>
   );
 }

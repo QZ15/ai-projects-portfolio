@@ -9,6 +9,7 @@ interface FilterSettings {
   mealsPerDay: number;
   preferences: string;
   dislikes: string;
+  requestedDish: string; // 🔹 Added for Request Meal feature
 }
 
 const defaultFilters: FilterSettings = {
@@ -19,6 +20,7 @@ const defaultFilters: FilterSettings = {
   mealsPerDay: 4,
   preferences: "",
   dislikes: "",
+  requestedDish: "", // 🔹 Default empty
 };
 
 const MealFilterContext = createContext<{

@@ -11,6 +11,7 @@ import { useMealFilters } from "../context/MealFilterContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useTodayMeals } from "../context/TodayMealsContext";
 import { useMealOfTheDay } from "../context/MealOfTheDayContext";
+import { generateRequestedMeal } from "../services/mealService";
 
 export default function MealPlanner() {
   const navigation = useNavigation();
@@ -86,6 +87,20 @@ export default function MealPlanner() {
       setLoading(null);
     }
   };
+
+  const handleRequestedMeal = async () => {
+    try {
+      setLoading("requested");
+      const meal = await generateRequestedMeal(filters.requestedDish);
+      if (!meal || !meal.name) throw new Error("Empty requested meal");
+      safeNavigate(withFallbackImage(meal));
+    } catch {
+      Alert.alert("Error", "Could not generate requested meal.");
+    } finally {
+      setLoading(null);
+    }
+  };
+
 
   const renderMealRow = (meal: any) => {
     const inToday = todayMeals.some((m) => m.name === meal.name);
@@ -171,7 +186,7 @@ export default function MealPlanner() {
 
           {/* Select Ingredients */}
           <TouchableOpacity
-            className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center"
+            className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
             onPress={handleSingleMeal}
             disabled={!!loading}
           >
@@ -195,6 +210,39 @@ export default function MealPlanner() {
                 <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
               </TouchableOpacity>
               {loading === "single"
+                ? <ActivityIndicator color="#fff" />
+                : <Ionicons name="chevron-forward" size={18} color="#6B7280" />}
+            </View>
+          </TouchableOpacity>
+          
+          {/* Request a Meal */}
+          <TouchableOpacity
+            className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center"
+            onPress={handleRequestedMeal}
+            disabled={!!loading}
+          >
+            {/* Left Section */}
+            <View className="flex-row items-center flex-1">
+              <Ionicons name="search-outline" size={20} color="#fff" />
+              <View className="ml-3">
+                <Text className="text-white text-base font-semibold">
+                  {loading === "requested" ? "Generating..." : "Request Meal"}
+                </Text>
+                <Text className="text-gray-400 text-xs mt-0.5">
+                  {filters.requestedDish || "Enter a dish in settings"}
+                </Text>
+              </View>
+            </View>
+
+            {/* Divider */}
+            <View style={{ width: 1, height: "100%", backgroundColor: "#3F3F46", marginHorizontal: 20 }} />
+
+            {/* Right Section */}
+            <View className="flex-row items-center">
+              <TouchableOpacity onPress={() => navigation.navigate("RequestMeal")}>
+                <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
+              </TouchableOpacity>
+              {loading === "requested"
                 ? <ActivityIndicator color="#fff" />
                 : <Ionicons name="chevron-forward" size={18} color="#6B7280" />}
             </View>

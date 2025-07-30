@@ -2,7 +2,7 @@
 import * as functions from "firebase-functions";
 import openai from "../services/openai.js";
 
-// ✅ Helper: Safe JSON parsing
+// Helper: Safe JSON parsing
 function safeParseJSON(content: string) {
   try {
     const jsonMatch = content.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
@@ -14,7 +14,7 @@ function safeParseJSON(content: string) {
   }
 }
 
-// ✅ Helper: Check if banned foods exist
+// Helper: Check if banned foods exist
 function containsBanned(plan: any[], bannedList: string[]) {
   if (!Array.isArray(plan) || bannedList.length === 0) return false;
   return plan.some(meal =>
@@ -25,7 +25,7 @@ function containsBanned(plan: any[], bannedList: string[]) {
   );
 }
 
-// ✅ Single Meal
+// Single Meal
 export const generateSingleMeal = functions.https.onCall(async (data) => {
   const { ingredients, preferences } = data;
 
@@ -73,7 +73,7 @@ Respond ONLY with valid JSON like this:
   }
 });
 
-// ✅ Full Meal Plan with strict filters & retry
+// Full Meal Plan with strict filters & retry
 export const generateMealPlan = functions.https.onCall(async (data) => {
   const { calories, protein, carbs, fat, preferences, dislikes, mealsPerDay } = data;
   const bannedFoods = dislikes
@@ -152,5 +152,69 @@ Return JSON like:
         throw new functions.https.HttpsError("internal", error.message);
       }
     }
+  }
+});
+
+export const generateRequestedMeal = functions.https.onCall(async (data) => {
+  const { requestedDish } = data;
+
+  functions.logger.info(`📩 Requested Dish: ${requestedDish}`);
+
+  if (!requestedDish || requestedDish.trim() === "") {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Dish name is required."
+    );
+  }
+
+  const prompt = `
+You are a professional chef and nutritionist.
+Create a healthy recipe for: "${requestedDish}".
+It must include:
+- mealType (Breakfast, Lunch, Dinner, or Snack)
+- name
+- calories, protein, carbs, fat
+- ingredients: array of { "item": string, "quantity": string }
+- instructions: array of short, numbered steps
+
+Respond ONLY with valid JSON object like:
+{
+  "mealType": "Breakfast" | "Lunch" | "Dinner" | "Snack",
+  "name": "Grilled Chicken with Rice",
+  "calories": 450,
+  "protein": 35,
+  "carbs": 40,
+  "fat": 12,
+  "ingredients": [
+      {"item": "Chicken breast", "quantity": "200g"},
+      {"item": "Rice", "quantity": "150g"},
+      {"item": "Olive oil", "quantity": "1 tbsp"},
+      {"item": "Garlic", "quantity": "2 cloves"}
+  ],
+  "instructions": [
+      "Preheat grill to medium-high heat.",
+      "Season chicken with salt, pepper, and garlic.",
+      "Grill chicken for 6-7 minutes each side until cooked through.",
+      "Cook rice according to package instructions.",
+      "Serve chicken over rice, drizzle with olive oil."
+  ]
+}`;
+
+  try {
+    const res = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const rawOutput = res.choices[0].message?.content || "{}";
+    functions.logger.info(`🔍 Raw GPT Requested Meal Output`, rawOutput);
+
+    const parsed = safeParseJSON(rawOutput);
+    if (!parsed?.name) throw new Error("Invalid requested meal data");
+
+    return parsed;
+  } catch (error: any) {
+    functions.logger.error("❌ Error generating requested meal", error);
+    throw new functions.https.HttpsError("internal", error.message);
   }
 });

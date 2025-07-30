@@ -8,7 +8,7 @@ import imageRoutes from "./routes/image.js";
 import progressRoutes from "./routes/progressFeedback.js";
 
 // ✅ Import callable functions
-import { generateSingleMeal, generateMealPlan } from "./routes/mealFunctions.js";
+import { generateSingleMeal, generateMealPlan, generateRequestedMeal } from "./routes/mealFunctions.js";
 
 const app = express();
 
@@ -28,6 +28,7 @@ app.use("/api/progress-feedback", progressRoutes);
 // ✅ Export callable meal functions with matching names
 export const generateSingleMealFunction = generateSingleMeal;
 export const generateMealPlanFunction = generateMealPlan;
+export const generateRequestedMealFunction = generateRequestedMeal;
 
 // ✅ Export Express API
 export const api = functions.https.onRequest(app);
