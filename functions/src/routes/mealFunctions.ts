@@ -2,21 +2,30 @@
 import * as functions from "firebase-functions";
 import openai from "../services/openai.js";
 
+// ✅ Helper: Safe JSON parsing
 function safeParseJSON(content: string) {
   try {
-    // Extract only JSON block if GPT returns extra text
     const jsonMatch = content.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
     if (jsonMatch) content = jsonMatch[0];
-
-    const parsed = JSON.parse(content);
-    return parsed;
+    return JSON.parse(content);
   } catch (err) {
-    console.error("❌ JSON Parse Error:", err, "\nRaw Content:", content);
+    functions.logger.error("❌ JSON Parse Error", err, { raw: content });
     return null;
   }
 }
 
-// --- Single Meal ---
+// ✅ Helper: Check if banned foods exist
+function containsBanned(plan: any[], bannedList: string[]) {
+  if (!Array.isArray(plan) || bannedList.length === 0) return false;
+  return plan.some(meal =>
+    Array.isArray(meal.ingredients) &&
+    meal.ingredients.some(ing =>
+      bannedList.some(b => ing.item?.toLowerCase().includes(b.toLowerCase()))
+    )
+  );
+}
+
+// ✅ Single Meal
 export const generateSingleMeal = functions.https.onCall(async (data) => {
   const { ingredients, preferences } = data;
 
@@ -54,39 +63,43 @@ Respond ONLY with valid JSON:
     });
 
     const parsed = safeParseJSON(res.choices[0].message?.content || "{}");
-    if (!parsed || !parsed.name) throw new Error("Invalid single meal data");
+    if (!parsed?.name) throw new Error("Invalid single meal data");
+
     return parsed;
   } catch (error: any) {
-    console.error("❌ Error generating single meal:", error);
+    functions.logger.error("❌ Error generating single meal", error);
     throw new functions.https.HttpsError("internal", error.message);
   }
 });
 
-
-// --- Full Meal Plan with Filters ---
+// ✅ Full Meal Plan with strict filters & retry
 export const generateMealPlan = functions.https.onCall(async (data) => {
   const { calories, protein, carbs, fat, preferences, dislikes, mealsPerDay } = data;
+  const bannedFoods = dislikes
+    ? dislikes.split(",").map(f => f.trim()).filter(Boolean)
+    : [];
 
-  const prompt = `
+  let attempt = 0;
+  let parsedPlan: any[] = [];
+
+  while (attempt < 2) { // retry once if constraints fail
+    attempt++;
+
+    const prompt = `
 You are a professional meal planning assistant.
-Create a full-day meal plan with exactly ${mealsPerDay} meals.
-Target macros: ${calories} kcal, ${protein}g P, ${carbs}g C, ${fat}g F.
-Ensure total macros meet the target values within ±5% for calories, protein, carbs, and fat.
+
+STRICT RULES:
+1. Create exactly ${mealsPerDay} meals (Breakfast, Lunch, Dinner, Snack, etc.).
+2. Total macros: ${calories} kcal, ${protein}g P, ${carbs}g C, ${fat}g F (±5% total).
+3. Absolutely exclude these foods: ${bannedFoods.join(", ") || "None"}.
+   - These foods must NOT appear in any meal.
+   - Replace them with similar nutritional substitutes if needed.
+4. Avoid repeating the same main protein in multiple meals unless requested in preferences.
+5. Output only valid JSON.
+
 Preferences: ${preferences || "None"}.
-Absolutely exclude the following foods: ${dislikes}. These ingredients must NOT appear in any meal.
-If they are common in certain meals, substitute them with similar nutritional replacements.
 
-For EACH meal, include:
-- mealType: "Breakfast", "Lunch", "Dinner", or "Snack"
-- name: Full descriptive dish name (e.g. "Grilled Salmon with Quinoa")
-- calories: number
-- protein: number
-- carbs: number
-- fat: number
-- ingredients: array of objects with { "item": string, "quantity": string }
-- instructions: array of short, numbered steps
-
-Respond ONLY with valid JSON array of meals, like this:
+Return JSON like:
 [
   {
     "mealType": "Breakfast",
@@ -109,19 +122,33 @@ Respond ONLY with valid JSON array of meals, like this:
   }
 ]`;
 
-  try {
-    const res = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-    });
+    try {
+      const res = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+      });
 
-    const parsed = safeParseJSON(res.choices[0].message?.content || "[]");
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error("Empty meal plan");
+      const rawOutput = res.choices[0].message?.content || "[]";
+      functions.logger.info(`🔍 Raw GPT Meal Plan Output (Attempt ${attempt})`, rawOutput);
+
+      parsedPlan = safeParseJSON(rawOutput);
+
+      // Validation checks
+      if (!Array.isArray(parsedPlan) || parsedPlan.length !== mealsPerDay) {
+        throw new Error(`Invalid meal count: expected ${mealsPerDay}, got ${parsedPlan.length}`);
+      }
+
+      if (containsBanned(parsedPlan, bannedFoods)) {
+        throw new Error(`Banned food detected: ${bannedFoods.join(", ")}`);
+      }
+
+      return parsedPlan;
+
+    } catch (error: any) {
+      functions.logger.error(`❌ Attempt ${attempt} failed`, error);
+      if (attempt >= 2) {
+        throw new functions.https.HttpsError("internal", error.message);
+      }
     }
-    return parsed;
-  } catch (error: any) {
-    console.error("❌ Error generating meal plan:", error);
-    throw new functions.https.HttpsError("internal", error.message);
   }
 });
