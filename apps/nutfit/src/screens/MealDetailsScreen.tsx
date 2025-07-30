@@ -30,31 +30,47 @@ export default function MealDetailsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }}>
+
+        {/* Image */}
         <Image
           source={{ uri: mealImage }}
           className="w-full h-48 rounded-2xl mb-4"
           resizeMode="cover"
         />
-        <View className="bg-neutral-900 p-4 rounded-2xl mb-6">
-          {(meal.mealType || "Meal") && (
-            <Text className="text-blue-400 text-xs mb-1">
-              {meal.mealType || "Meal"}
-            </Text>
-          )}
-          <Text className="text-white text-[24px] font-bold mb-1">{meal.name}</Text>
-          <Text className="text-gray-400 text-sm">
-            {meal.calories} kcal • {meal.protein}g P • {meal.carbs}g C • {meal.fat}g F
-          </Text>
-        </View>
 
-        {/* Buttons */}
-        <View className="flex-row justify-around mb-6">
-          <TouchableOpacity onPress={() => toggleFavorite(meal)}>
-            <Ionicons name={isFavorite(meal) ? "heart" : "heart-outline"} size={28} color={isFavorite(meal) ? "white" : "white"} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => inToday ? removeFromToday(meal) : addToToday(meal)}>
-            <Ionicons name={inToday ? "remove-circle-outline" : "add-circle-outline"} size={28} color="white" />
-          </TouchableOpacity>
+        {/* Name + Macros + Buttons Row */}
+        <View className="flex-row mb-6">
+          {/* Name + Macros Card */}
+          <View className="bg-neutral-900 p-4 rounded-2xl flex-1 mr-3">
+            {meal.mealType && (
+              <Text className="text-blue-400 text-xs mb-1">
+                {meal.mealType}
+              </Text>
+            )}
+            <Text className="text-white text-[24px] font-bold mb-1">{meal.name}</Text>
+            <Text className="text-gray-400 text-sm">
+              {meal.calories} kcal • {meal.protein}g P • {meal.carbs}g C • {meal.fat}g F
+            </Text>
+          </View>
+
+          {/* Vertical Button Stack */}
+          <View className="justify-between bg-neutral-900 rounded-2xl p-2">
+            <TouchableOpacity onPress={() => toggleFavorite(meal)}>
+              <Ionicons
+                name={isFavorite(meal) ? "heart" : "heart-outline"}
+                size={28}
+                color={isFavorite(meal) ? "white" : "white"}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => inToday ? removeFromToday(meal) : addToToday(meal)}>
+              <Ionicons
+                name={inToday ? "remove-circle-outline" : "add-circle-outline"}
+                size={28}
+                color="white"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Ingredients */}
@@ -78,6 +94,7 @@ export default function MealDetailsScreen() {
               ))
             : <Text className="text-gray-500 text-sm">No instructions provided</Text>}
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );
