@@ -42,9 +42,9 @@ export default function MealDetailsScreen() {
         <View className="flex-row mb-6">
           {/* Name + Macros Card */}
           <View className="bg-neutral-900 p-4 rounded-2xl flex-1 mr-3">
-            {meal.mealType && (
+            {(meal.mealType || "Meal") && (
               <Text className="text-blue-400 text-xs mb-1">
-                {meal.mealType}
+                {meal.mealType || "Meal"}
               </Text>
             )}
             <Text className="text-white text-[24px] font-bold mb-1">{meal.name}</Text>
