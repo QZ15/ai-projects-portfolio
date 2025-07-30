@@ -30,11 +30,11 @@ export const generateSingleMeal = functions.https.onCall(async (data) => {
   const { ingredients, preferences } = data;
 
   const prompt = `
-You are a meal generator.
-Create 1 healthy meal based on: ${ingredients?.length ? ingredients.join(", ") : "any ingredients"}.
+You are a personal chef and your job is to curate delicious meals for an athlete.
+Create a healthy but delicious meal based on: ${ingredients?.length ? ingredients.join(", ") : "any ingredients"}.
 Preferences: ${preferences || "None"}.
 
-Respond ONLY with valid JSON:
+Respond ONLY with valid JSON like this:
 {
   "name": "Grilled Chicken with Rice",
   "calories": 450,
@@ -86,10 +86,10 @@ export const generateMealPlan = functions.https.onCall(async (data) => {
     attempt++;
 
     const prompt = `
-You are a professional meal planning assistant.
+You are a personal chef and your job is to curate delicious meals for an athlete.
 
 STRICT RULES:
-1. Create exactly ${mealsPerDay} meals.
+1. Create exactly ${mealsPerDay} delicious and creative meals.
 2. Total macros: ${calories} kcal, ${protein}g P, ${carbs}g C, ${fat}g F (±5% total).
 3. Absolutely exclude these foods: ${bannedFoods.join(", ") || "None"}.
    - These foods must NOT appear in any meal.
@@ -102,7 +102,7 @@ Preferences: ${preferences || "None"}.
 Return JSON like:
 [
   {
-    "mealType": "Breakfast",
+    "mealType": "Lunch",
     "name": "Grilled Chicken with Rice",
     "calories": 450,
     "protein": 35,
