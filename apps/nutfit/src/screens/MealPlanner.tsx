@@ -99,7 +99,7 @@ export default function MealPlanner() {
   const handleSingleMeal = async () => {
     try {
       setLoading("single");
-      const meal = await generateSingleMeal(["chicken", "avocado"], "high protein");
+      const meal = await generateSingleMeal(filters.selectedIngredients || [], filters.preferences);
       if (!meal || !meal.name) throw new Error("Empty single meal");
       safeNavigate(meal);
     } catch (err) {
@@ -109,6 +109,7 @@ export default function MealPlanner() {
       setLoading(null);
     }
   };
+
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -169,12 +170,24 @@ export default function MealPlanner() {
                 <Text className="text-white text-base font-semibold">
                   {loading === "single" ? "Generating..." : "Select Ingredients"}
                 </Text>
-                <Text className="text-gray-400 text-xs mt-0.5">Generate a meal based on what you have</Text>
+                <Text className="text-gray-400 text-xs mt-0.5">
+                  Generate a meal based on what you have
+                </Text>
               </View>
             </View>
-            {loading === "single"
-              ? <ActivityIndicator color="#fff" />
-              : <Ionicons name="chevron-forward" size={18} color="#6B7280" />}
+            <View className="flex-row items-center">
+              <TouchableOpacity onPress={() => navigation.navigate("SelectIngredients")}>
+                <Ionicons
+                  name="settings-outline"
+                  size={20}
+                  color="#6B7280"
+                  style={{ marginRight: 8 }}
+                />
+              </TouchableOpacity>
+              {loading === "single"
+                ? <ActivityIndicator color="#fff" />
+                : <Ionicons name="chevron-forward" size={18} color="#6B7280" />}
+            </View>
           </TouchableOpacity>
         </View>
 
