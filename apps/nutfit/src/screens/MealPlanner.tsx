@@ -1,56 +1,29 @@
 // MealPlanner.tsx
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  ActivityIndicator,
-  Alert,
+  View, Text, Image, ScrollView, TouchableOpacity,
+  SafeAreaView, ActivityIndicator, Alert, LayoutAnimation
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { generateSingleMeal, generateMealPlan } from "../services/mealService";
 import { useMealFilters } from "../context/MealFilterContext";
+import { useFavorites } from "../context/FavoritesContext";
+import { useTodayMeals } from "../context/TodayMealsContext";
 
 export default function MealPlanner() {
   const navigation = useNavigation();
   const { filters } = useMealFilters();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const { todayMeals, addToToday, removeFromToday } = useTodayMeals();
   const [loading, setLoading] = useState<string | null>(null);
   const [planMeals, setPlanMeals] = useState<any[]>([]);
 
+  const [showFavorites, setShowFavorites] = useState(true);
+  const [showToday, setShowToday] = useState(true);
+  const [showAIPlan, setShowAIPlan] = useState(true);
+
   const placeholderImage = { uri: "https://source.unsplash.com/600x400/?healthy,food" };
-
-  const todayMeal = {
-    name: "Chicken Avocado Salad",
-    macros: "450 kcal • 32g P • 20g C • 29g F",
-    image: placeholderImage,
-    ingredients: [],
-    instructions: [],
-  };
-
-  const staticMeals = [
-    {
-      name: "Oatmeal with Berries",
-      macros: "320 kcal • 7g P • 55g C • 10g F",
-      ingredients: [],
-      instructions: [],
-    },
-    {
-      name: "Grilled Salmon",
-      macros: "600 kcal • 55g P • 8g C • 38g F",
-      ingredients: [],
-      instructions: [],
-    },
-    {
-      name: "Veggie Omelette",
-      macros: "350 kcal • 22g P • 8g C • 26g F",
-      ingredients: [],
-      instructions: [],
-    },
-  ];
 
   const safeNavigate = (meal: any) => {
     const normalizedMeal = {
@@ -74,22 +47,13 @@ export default function MealPlanner() {
   const handleAIPlan = async () => {
     try {
       setLoading("plan");
-      console.log("📤 Sending filters to Firebase:", filters); // ✅ Debug log
       const plan = await generateMealPlan(
-        filters.calories,
-        filters.protein,
-        filters.carbs,
-        filters.fat,
-        filters.preferences,
-        filters.dislikes,
-        filters.mealsPerDay
+        filters.calories, filters.protein, filters.carbs,
+        filters.fat, filters.preferences, filters.dislikes, filters.mealsPerDay
       );
-      if (!Array.isArray(plan) || plan.length === 0) {
-        throw new Error("Empty meal plan");
-      }
+      if (!Array.isArray(plan) || plan.length === 0) throw new Error("Empty meal plan");
       setPlanMeals(plan);
     } catch (err) {
-      console.error("❌ Error generating plan:", err);
       Alert.alert("Error", "Could not generate meal plan.");
     } finally {
       setLoading(null);
@@ -102,25 +66,57 @@ export default function MealPlanner() {
       const meal = await generateSingleMeal(filters.selectedIngredients || [], filters.preferences);
       if (!meal || !meal.name) throw new Error("Empty single meal");
       safeNavigate(meal);
-    } catch (err) {
-      console.error("❌ Error generating single meal:", err);
+    } catch {
       Alert.alert("Error", "Could not generate meal.");
     } finally {
       setLoading(null);
     }
   };
 
+  const renderMealRow = (meal: any) => {
+    const inToday = todayMeals.some((m) => m.name === meal.name);
+    return (
+      <TouchableOpacity
+        key={meal.name}
+        className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
+        onPress={() => safeNavigate(meal)}
+      >
+        <View style={{ flex: 1 }}>
+          <Text className="text-white font-medium">{meal.name}</Text>
+          <Text className="text-gray-400 text-xs mt-0.5">
+            {meal.calories ?? 0} kcal • {meal.protein ?? 0}g P • {meal.carbs ?? 0}g C • {meal.fat ?? 0}g F
+          </Text>
+        </View>
+
+        <TouchableOpacity onPress={() => toggleFavorite(meal)}>
+          <Ionicons
+            name={isFavorite(meal) ? "heart" : "heart-outline"}
+            size={20}
+            color={isFavorite(meal) ? "white" : "#FFFFFF"}
+            style={{ marginRight: 10 }}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => (inToday ? removeFromToday(meal) : addToToday(meal))}
+        >
+          <Ionicons
+            name={inToday ? "remove-circle-outline" : "add-circle-outline"}
+            size={22}
+            color={inToday ? "white" : "#FFFFFF"}
+          />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }}>
-        
+
         {/* Header */}
         <View className="flex-row justify-between items-center mt-3 mb-6">
           <Text className="text-white text-[28px] font-bold">Meal Planner</Text>
-          <TouchableOpacity>
-            <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
-          </TouchableOpacity>
         </View>
 
         {/* Action Buttons */}
@@ -131,7 +127,8 @@ export default function MealPlanner() {
             onPress={handleAIPlan}
             disabled={!!loading}
           >
-            <View className="flex-row items-center">
+            {/* Left Section */}
+            <View className="flex-row items-center flex-1">
               <Ionicons name="restaurant-outline" size={20} color="#fff" />
               <View className="ml-3">
                 <Text className="text-white text-base font-semibold">
@@ -143,14 +140,13 @@ export default function MealPlanner() {
               </View>
             </View>
 
+            {/* Divider */}
+            <View style={{ width: 1, height: "100%", backgroundColor: "#3F3F46", marginHorizontal: 20 }} />
+
+            {/* Right Section (Settings + Chevron/Loader) */}
             <View className="flex-row items-center">
               <TouchableOpacity onPress={() => navigation.navigate("MealPlanFilters")}>
-                <Ionicons
-                  name="settings-outline"
-                  size={20}
-                  color="#6B7280"
-                  style={{ marginRight: 8 }}
-                />
+                <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
               </TouchableOpacity>
               {loading === "plan"
                 ? <ActivityIndicator color="#fff" />
@@ -164,25 +160,24 @@ export default function MealPlanner() {
             onPress={handleSingleMeal}
             disabled={!!loading}
           >
-            <View className="flex-row items-center">
+            {/* Left Section */}
+            <View className="flex-row items-center flex-1">
               <Ionicons name="add-outline" size={20} color="#fff" />
               <View className="ml-3">
                 <Text className="text-white text-base font-semibold">
                   {loading === "single" ? "Generating..." : "Select Ingredients"}
                 </Text>
-                <Text className="text-gray-400 text-xs mt-0.5">
-                  Generate a meal based on what you have
-                </Text>
+                <Text className="text-gray-400 text-xs mt-0.5">Generate a meal based on what you have</Text>
               </View>
             </View>
+
+            {/* Divider */}
+            <View style={{ width: 1, height: "100%", backgroundColor: "#3F3F46", marginHorizontal: 20 }} />
+
+            {/* Right Section (Settings + Chevron/Loader) */}
             <View className="flex-row items-center">
               <TouchableOpacity onPress={() => navigation.navigate("SelectIngredients")}>
-                <Ionicons
-                  name="settings-outline"
-                  size={20}
-                  color="#6B7280"
-                  style={{ marginRight: 8 }}
-                />
+                <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
               </TouchableOpacity>
               {loading === "single"
                 ? <ActivityIndicator color="#fff" />
@@ -191,39 +186,46 @@ export default function MealPlanner() {
           </TouchableOpacity>
         </View>
 
-        {/* Meal of the Day */}
-        <Text className="text-white text-lg font-semibold mb-3">Meal of the Day</Text>
-        <TouchableOpacity
-          className="bg-neutral-900 rounded-2xl overflow-hidden mb-6"
-          onPress={() => safeNavigate(todayMeal)}
-        >
-          <Image source={todayMeal.image} className="w-full h-40" resizeMode="cover" />
-          <View className="p-4">
-            <Text className="text-white text-lg font-semibold">{todayMeal.name}</Text>
-            <Text className="text-gray-400 text-sm mt-1">{todayMeal.macros}</Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* AI Generated Meals */}
+        {/* AI Meal Plan */}
         {planMeals.length > 0 && (
           <>
-            <Text className="text-white text-lg font-semibold mb-3">AI Meal Plan</Text>
-            {planMeals.map((meal, idx) => (
-              <TouchableOpacity
-                key={idx}
-                className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
-                onPress={() => safeNavigate(meal)}
-              >
-                <View>
-                  <Text className="text-white font-medium">{meal.name}</Text>
-                  <Text className="text-gray-400 text-xs mt-0.5">
-                    {meal.calories ?? 0} kcal • {meal.protein ?? 0}g P • {meal.carbs ?? 0}g C • {meal.fat ?? 0}g F
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-              </TouchableOpacity>
-            ))}
+            <TouchableOpacity
+              onPress={() => { LayoutAnimation.easeInEaseOut(); setShowAIPlan(!showAIPlan); }}
+              className="flex-row justify-between items-center"
+            >
+              <Text className="text-white text-lg font-semibold mt-6 mb-3">AI Meal Plan</Text>
+              <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
+            </TouchableOpacity>
+            {showAIPlan && planMeals.map(renderMealRow)}
           </>
+        )}
+
+        {/* Today Meals */}
+        <TouchableOpacity
+          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowToday(!showToday); }}
+          className="flex-row justify-between items-center"
+        >
+          <Text className="text-white text-lg font-semibold mt-6 mb-3">
+            Today’s Meals ({todayMeals.length})
+          </Text>
+          <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
+        </TouchableOpacity>
+        {showToday && todayMeals.map(renderMealRow)}
+
+        {/* Favorites */}
+        <TouchableOpacity
+          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowFavorites(!showFavorites); }}
+          className="flex-row justify-between items-center"
+        >
+          <Text className="text-white text-lg font-semibold mt-6 mb-3">
+            Favorites ({favorites.length})
+          </Text>
+          <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
+        </TouchableOpacity>
+        {showFavorites && (
+          <View style={{ maxHeight: 300 }}>
+            <ScrollView>{favorites.map(renderMealRow)}</ScrollView>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
