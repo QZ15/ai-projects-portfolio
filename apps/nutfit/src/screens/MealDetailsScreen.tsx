@@ -14,11 +14,24 @@ export default function MealDetailsScreen() {
   const placeholderImage = { uri: "https://source.unsplash.com/600x400/?healthy,food" };
   const inToday = todayMeals.some((m) => m.name === meal.name);
 
+  const fallbackImages = {
+    Breakfast: "https://images.unsplash.com/photo-1532980400857-e8d9d275d858?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Lunch: "https://images.unsplash.com/photo-1593114630390-e35acaa7d7d6?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Dinner: "https://images.unsplash.com/photo-1659480150417-25f9f0d5ca2e?q=80&w=765&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Snack: "https://images.unsplash.com/photo-1648471981428-ede812604400?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Default: "https://images.unsplash.com/photo-1626300006988-42a927fd80ee?q=80&w=771&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  };
+
+  const mealImage =
+    meal.image ||
+    fallbackImages[meal.mealType] ||
+    fallbackImages.Default;
+
   return (
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }}>
         <Image
-          source={meal.image || placeholderImage}
+          source={{ uri: mealImage }}
           className="w-full h-48 rounded-2xl mb-4"
           resizeMode="cover"
         />

@@ -10,6 +10,7 @@ import { generateSingleMeal, generateMealPlan } from "../services/mealService";
 import { useMealFilters } from "../context/MealFilterContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useTodayMeals } from "../context/TodayMealsContext";
+import { useMealOfTheDay } from "../context/MealOfTheDayContext";
 
 export default function MealPlanner() {
   const navigation = useNavigation();
@@ -23,7 +24,20 @@ export default function MealPlanner() {
   const [showToday, setShowToday] = useState(true);
   const [showAIPlan, setShowAIPlan] = useState(true);
 
-  const placeholderImage = { uri: "https://source.unsplash.com/600x400/?healthy,food" };
+  const { mealOfTheDay } = useMealOfTheDay();
+
+  const fallbackImages = {
+    Breakfast: "https://images.unsplash.com/photo-1532980400857-e8d9d275d858?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Lunch: "https://images.unsplash.com/photo-1593114630390-e35acaa7d7d6?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Dinner: "https://images.unsplash.com/photo-1659480150417-25f9f0d5ca2e?q=80&w=765&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Snack: "https://images.unsplash.com/photo-1648471981428-ede812604400?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Default: "https://images.unsplash.com/photo-1626300006988-42a927fd80ee?q=80&w=771&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  };
+
+  const withFallbackImage = (meal: any) => ({
+    ...meal,
+    image: meal.image || fallbackImages[meal.mealType] || fallbackImages.Default,
+  });
 
   const safeNavigate = (meal: any) => {
     const normalizedMeal = {
@@ -39,7 +53,7 @@ export default function MealPlanner() {
         : typeof meal.instructions === "string"
         ? [meal.instructions]
         : [],
-      image: meal.image || placeholderImage,
+      image: meal.image || fallbackImages[meal.mealType],
     };
     navigation.navigate("MealDetails", { meal: normalizedMeal });
   };
@@ -52,7 +66,7 @@ export default function MealPlanner() {
         filters.fat, filters.preferences, filters.dislikes, filters.mealsPerDay
       );
       if (!Array.isArray(plan) || plan.length === 0) throw new Error("Empty meal plan");
-      setPlanMeals(plan);
+      setPlanMeals(plan.map(withFallbackImage));
     } catch (err) {
       Alert.alert("Error", "Could not generate meal plan.");
     } finally {
@@ -65,7 +79,7 @@ export default function MealPlanner() {
       setLoading("single");
       const meal = await generateSingleMeal(filters.selectedIngredients || [], filters.preferences);
       if (!meal || !meal.name) throw new Error("Empty single meal");
-      safeNavigate(meal);
+      safeNavigate(withFallbackImage(meal));
     } catch {
       Alert.alert("Error", "Could not generate meal.");
     } finally {
@@ -117,6 +131,7 @@ export default function MealPlanner() {
         {/* Header */}
         <View className="flex-row justify-between items-center mt-3 mb-6">
           <Text className="text-white text-[28px] font-bold">Meal Planner</Text>
+          <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
         </View>
 
         {/* Action Buttons */}
@@ -185,6 +200,34 @@ export default function MealPlanner() {
             </View>
           </TouchableOpacity>
         </View>
+
+        {/* Meal of the Day */}
+        {mealOfTheDay && (
+          <>
+            <Text className="text-white text-lg font-semibold mb-3 mt-4">
+              Meal of the Day
+            </Text>
+            <TouchableOpacity
+              className="bg-neutral-900 rounded-2xl overflow-hidden mb-6"
+              onPress={() => safeNavigate(mealOfTheDay)}
+            >
+              <Image
+                source={{ uri: mealOfTheDay.image }}
+                className="w-full h-40"
+                resizeMode="cover"
+              />
+              <View className="p-4">
+                <Text className="text-white text-lg font-semibold">
+                  {mealOfTheDay.name}
+                </Text>
+                <Text className="text-gray-400 text-sm mt-1">
+                  {mealOfTheDay.calories} kcal • {mealOfTheDay.protein}g P •{" "}
+                  {mealOfTheDay.carbs}g C • {mealOfTheDay.fat}g F
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </>
+        )}
 
         {/* AI Meal Plan */}
         {planMeals.length > 0 && (

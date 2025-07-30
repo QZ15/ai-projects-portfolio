@@ -1,16 +1,18 @@
-// App.tsx
 import React from "react";
 import RootNavigator from "./src/navigation/RootNavigator";
-import { TodayMealsProvider } from "./src/context/TodayMealsContext";
+import { MealOfTheDayProvider } from "./src/context/MealOfTheDayContext";
 import { FavoritesProvider } from "./src/context/FavoritesContext";
-import { MealFilterProvider } from "./src/context/MealFilterContext"; // ✅ Import
+import { TodayMealsProvider } from "./src/context/TodayMealsContext";
+import { MealFilterProvider } from "./src/context/MealFilterContext";
 
 export default function App() {
   return (
-    <MealFilterProvider>  {/* ✅ Wrap filters at the top level */}
+    <MealFilterProvider>
       <FavoritesProvider>
         <TodayMealsProvider>
-          <RootNavigator />
+          <MealOfTheDayProvider>
+            <RootNavigator />
+          </MealOfTheDayProvider>
         </TodayMealsProvider>
       </FavoritesProvider>
     </MealFilterProvider>
