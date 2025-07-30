@@ -89,7 +89,7 @@ export const generateMealPlan = functions.https.onCall(async (data) => {
 You are a professional meal planning assistant.
 
 STRICT RULES:
-1. Create exactly ${mealsPerDay} meals (Breakfast, Lunch, Dinner, Snack, etc.).
+1. Create exactly ${mealsPerDay} meals.
 2. Total macros: ${calories} kcal, ${protein}g P, ${carbs}g C, ${fat}g F (±5% total).
 3. Absolutely exclude these foods: ${bannedFoods.join(", ") || "None"}.
    - These foods must NOT appear in any meal.
@@ -103,24 +103,25 @@ Return JSON like:
 [
   {
     "mealType": "Breakfast",
-    "name": "Spinach Omelette with Toast",
-    "calories": 400,
-    "protein": 30,
-    "carbs": 20,
-    "fat": 15,
+    "name": "Grilled Chicken with Rice",
+    "calories": 450,
+    "protein": 35,
+    "carbs": 40,
+    "fat": 12,
     "ingredients": [
-      {"item": "Eggs", "quantity": "3 large"},
-      {"item": "Spinach", "quantity": "1 cup"},
-      {"item": "Whole grain toast", "quantity": "2 slices"}
+        {"item": "Chicken breast", "quantity": "200g"},
+        {"item": "Rice", "quantity": "150g"},
+        {"item": "Olive oil", "quantity": "1 tbsp"},
+        {"item": "Garlic", "quantity": "2 cloves"}
     ],
     "instructions": [
-      "Beat the eggs with salt and pepper.",
-      "Sauté spinach in a pan with olive oil.",
-      "Pour eggs over spinach and cook until set.",
-      "Toast bread and serve alongside."
+        "Preheat grill to medium-high heat.",
+        "Season chicken with salt, pepper, and garlic.",
+        "Grill chicken for 6-7 minutes each side until cooked through.",
+        "Cook rice according to package instructions.",
+        "Serve chicken over rice, drizzle with olive oil."
     ]
-  }
-]`;
+}`;
 
     try {
       const res = await openai.chat.completions.create({
