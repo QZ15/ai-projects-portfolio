@@ -36,6 +36,7 @@ Preferences: ${preferences || "None"}.
 
 Respond ONLY with valid JSON like this:
 {
+  "mealType": "Breakfast" | "Lunch" | "Dinner" | "Snack",
   "name": "Grilled Chicken with Rice",
   "calories": 450,
   "protein": 35,
@@ -102,7 +103,7 @@ Preferences: ${preferences || "None"}.
 Return JSON like:
 [
   {
-    "mealType": "Lunch",
+    "mealType": "Breakfast" | "Lunch" | "Dinner" | "Snack",
     "name": "Grilled Chicken with Rice",
     "calories": 450,
     "protein": 35,

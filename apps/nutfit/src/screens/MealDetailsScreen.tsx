@@ -36,7 +36,11 @@ export default function MealDetailsScreen() {
           resizeMode="cover"
         />
         <View className="bg-neutral-900 p-4 rounded-2xl mb-6">
-          {meal.mealType && <Text className="text-blue-400 text-xs mb-1">{meal.mealType}</Text>}
+          {(meal.mealType || "Meal") && (
+            <Text className="text-blue-400 text-xs mb-1">
+              {meal.mealType || "Meal"}
+            </Text>
+          )}
           <Text className="text-white text-[24px] font-bold mb-1">{meal.name}</Text>
           <Text className="text-gray-400 text-sm">
             {meal.calories} kcal • {meal.protein}g P • {meal.carbs}g C • {meal.fat}g F
