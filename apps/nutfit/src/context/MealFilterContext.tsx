@@ -7,9 +7,11 @@ interface FilterSettings {
   carbs: number;
   fat: number;
   mealsPerDay: number;
-  preferences: string;
-  dislikes: string;
+  preferences: string[];
+  dislikes: string[];
   requestedDish: string; // 🔹 Added for Request Meal feature
+  ingredientsEnabled: boolean;
+  requestedDishEnabled: boolean;
 }
 
 const defaultFilters: FilterSettings = {
@@ -18,9 +20,11 @@ const defaultFilters: FilterSettings = {
   carbs: 200,
   fat: 70,
   mealsPerDay: 4,
-  preferences: "",
-  dislikes: "",
+  preferences: [],
+  dislikes: [],
   requestedDish: "", // 🔹 Default empty
+  ingredientsEnabled: true,
+  requestedDishEnabled: true,
 };
 
 const MealFilterContext = createContext<{

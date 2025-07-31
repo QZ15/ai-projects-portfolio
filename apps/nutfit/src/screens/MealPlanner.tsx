@@ -66,10 +66,9 @@ export default function MealPlanner() {
   const handleAIPlan = async () => {
     try {
       setLoading("plan");
-      const plan = await generateMealPlan(
-        filters.calories, filters.protein, filters.carbs,
-        filters.fat, filters.preferences, filters.dislikes, filters.mealsPerDay
-      );
+      filters.ingredientsEnabled = false;
+      filters.requestedDishEnabled = false;
+      const plan = await generateMealPlan(filters, recentMeals.map(m => m.name));
       if (!Array.isArray(plan) || plan.length === 0) throw new Error("Empty meal plan");
       setPlanMeals(plan.map(withFallbackImage));
     } catch (err) {
@@ -82,11 +81,10 @@ export default function MealPlanner() {
   const handleSingleMeal = async () => {
     try {
       setLoading("single");
-      const meal = await generateSingleMeal(
-        filters.selectedIngredients || [], 
-        filters.preferences,
-        recentMeals.map(m => m.name)
-      );
+      filters.ingredients = filters.selectedIngredients || [];
+      filters.ingredientsEnabled = true;
+      filters.requestedDishEnabled = false;
+      const meal = await generateSingleMeal(filters, recentMeals.map(m => m.name));
       addRecentMeal(meal);
       if (!meal || !meal.name) throw new Error("Empty single meal");
       safeNavigate(withFallbackImage(meal));
@@ -107,10 +105,9 @@ export default function MealPlanner() {
     }
     try {
       setLoading("requested");
-      const meal = await generateRequestedMeal(
-        filters.requestedDish,
-        recentMeals.map(m => m.name)
-      );
+      filters.ingredientsEnabled = false;
+      filters.requestedDishEnabled = true;
+      const meal = await generateRequestedMeal(filters, recentMeals.map(m => m.name));
       addRecentMeal(meal);
       if (!meal || !meal.name) throw new Error("Empty requested meal");
       safeNavigate(withFallbackImage(meal));

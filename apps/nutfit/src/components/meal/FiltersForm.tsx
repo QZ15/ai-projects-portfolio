@@ -52,6 +52,8 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   // Ingredients List
   const [ingredientsList, setIngredientsList] = useState<string[]>([]);
   const [newIngredient, setNewIngredient] = useState("");
+  const [ingredientsEnabled, setIngredientsEnabled] = useState(filters.ingredientsEnabled);
+  const [requestedDishEnabled, setRequestedDishEnabled] = useState(filters.requestedDishEnabled);
 
   // 🔹 Load preferences, dislikes, and toggles from AsyncStorage
   useEffect(() => {
@@ -82,6 +84,8 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
           setBudgetEnabled(toggles.budget);
           setCookingEnabled(toggles.cooking);
           setPrepEnabled(toggles.prep);
+          if (toggles.ingredients !== undefined) setIngredientsEnabled(toggles.ingredients);
+          if (toggles.requestedDish !== undefined) setRequestedDishEnabled(toggles.requestedDish);
         }
       } catch (e) {
         console.error("Error loading filters", e);
@@ -90,12 +94,23 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   }, []);
 
   // 🔹 Save toggles to AsyncStorage
-  const saveToggles = async (newValues: Partial<{ macros: boolean; budget: boolean; cooking: boolean; prep: boolean }>) => {
+  const saveToggles = async (
+    newValues: Partial<{
+      macros: boolean;
+      budget: boolean;
+      cooking: boolean;
+      prep: boolean;
+      ingredients: boolean;
+      requestedDish: boolean;
+    }>
+  ) => {
     const toggles = {
       macros: macrosEnabled,
       budget: budgetEnabled,
       cooking: cookingEnabled,
-      prep: prepEnabled,
+       prep: prepEnabled,
+       ingredients: ingredientsEnabled,
+       requestedDish: requestedDishEnabled,
       ...newValues,
     };
     await AsyncStorage.setItem("filterToggles", JSON.stringify(toggles));
@@ -116,6 +131,8 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
       cookingTime: cookingEnabled ? cookingTime : undefined,
       preferences: preferencesList,
       dislikes: dislikesList,
+      ingredientsEnabled,
+      requestedDishEnabled,
     });
     await saveToggles({});
     await AsyncStorage.setItem("ingredients", JSON.stringify(ingredientsList));
@@ -208,58 +225,78 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
         {/* Requested Dish */}
         {showRequestedDish && (
           <View className="bg-neutral-900 p-4 rounded-2xl mb-4">
-            <Text className="text-white text-lg font-semibold mb-2">Requested Dish</Text>
-            <TextInput
-              className="bg-neutral-800 text-white p-3 rounded-xl"
-              placeholder="e.g. Hakka Chili Chicken"
-              placeholderTextColor="#6B7280"
-              value={filters.requestedDish || ""}
-              onChangeText={(t) => setFilters({ ...filters, requestedDish: t })}
-            />
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-white text-lg font-semibold">Requested Dish</Text>
+              <Switch
+                value={requestedDishEnabled}
+                onValueChange={setRequestedDishEnabled}
+                trackColor={{ false: "#6B7280", true: "#a3a3a3" }}
+              />
+            </View>
+            {requestedDishEnabled && (
+              <TextInput
+                className="bg-neutral-800 text-white p-3 rounded-xl"
+                placeholder="e.g. Hakka Chili Chicken"
+                placeholderTextColor="#6B7280"
+                value={filters.requestedDish || ""}
+                onChangeText={(t) => setFilters({ ...filters, requestedDish: t })}
+              />
+            )}
           </View>
         )}
 
         {/* Ingredient Filter */}
         {showIngredients && (
           <View className="bg-neutral-900 p-4 rounded-2xl mb-4">
-            <Text className="text-white text-lg font-semibold mb-2">Ingredients</Text>
-            <View className="flex-row mt-3">
-              <TextInput
-                className="flex-1 bg-neutral-800 text-white p-3 rounded-xl mr-2"
-                placeholder="Add ingredient..."
-                placeholderTextColor="#6B7280"
-                value={newIngredient}
-                onChangeText={setNewIngredient}
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-white text-lg font-semibold">Ingredients</Text>
+              <Switch
+                value={ingredientsEnabled}
+                onValueChange={setIngredientsEnabled}
+                trackColor={{ false: "#6B7280", true: "#a3a3a3" }}
               />
-              <TouchableOpacity
-                className="bg-white px-4 rounded-xl justify-center"
-                onPress={async () => {
-                  if (!newIngredient.trim()) return;
-                  const updated = [...ingredientsList, newIngredient.trim()];
-                  setIngredientsList(updated);
-                  setNewIngredient("");
-                  await AsyncStorage.setItem("ingredients", JSON.stringify(updated));
-                }}
-              >
-                <Text className="text-black font-semibold">Add</Text>
-              </TouchableOpacity>
             </View>
-            <View className="flex-row flex-wrap gap-2 mt-4">
-              {ingredientsList.map((ing, idx) => (
-                <View key={idx} className="bg-neutral-800 rounded-full px-3 py-1 flex-row items-center">
-                  <Text className="text-white mr-2">{ing}</Text>
+            {ingredientsEnabled && (
+              <>
+                <View className="flex-row mt-3">
+                  <TextInput
+                    className="flex-1 bg-neutral-800 text-white p-3 rounded-xl mr-2"
+                    placeholder="Add ingredient..."
+                    placeholderTextColor="#6B7280"
+                    value={newIngredient}
+                    onChangeText={setNewIngredient}
+                  />
                   <TouchableOpacity
+                    className="bg-white px-4 rounded-xl justify-center"
                     onPress={async () => {
-                      const updated = ingredientsList.filter((_, i) => i !== idx);
+                      if (!newIngredient.trim()) return;
+                      const updated = [...ingredientsList, newIngredient.trim()];
                       setIngredientsList(updated);
+                      setNewIngredient("");
                       await AsyncStorage.setItem("ingredients", JSON.stringify(updated));
                     }}
                   >
-                    <Ionicons name="close" size={14} color="#9CA3AF" />
+                    <Text className="text-black font-semibold">Add</Text>
                   </TouchableOpacity>
                 </View>
-              ))}
-            </View>
+                <View className="flex-row flex-wrap gap-2 mt-4">
+                  {ingredientsList.map((ing, idx) => (
+                    <View key={idx} className="bg-neutral-800 rounded-full px-3 py-1 flex-row items-center">
+                      <Text className="text-white mr-2">{ing}</Text>
+                      <TouchableOpacity
+                        onPress={async () => {
+                          const updated = ingredientsList.filter((_, i) => i !== idx);
+                          setIngredientsList(updated);
+                          await AsyncStorage.setItem("ingredients", JSON.stringify(updated));
+                        }}
+                      >
+                        <Ionicons name="close" size={14} color="#9CA3AF" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
           </View>
         )}
 
