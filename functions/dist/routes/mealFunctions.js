@@ -29,6 +29,10 @@ function normalizeFilters(filters = {}) {
                     .map((s) => s.trim())
                     .filter(Boolean)
                 : [],
+        macrosEnabled: filters?.macrosEnabled ?? false,
+        budgetEnabled: filters?.budgetEnabled ?? false,
+        cookingEnabled: filters?.cookingEnabled ?? false,
+        prepEnabled: filters?.prepEnabled ?? false,
         ingredientsEnabled: filters?.ingredientsEnabled ?? false,
         requestedDishEnabled: filters?.requestedDishEnabled ?? false,
     };

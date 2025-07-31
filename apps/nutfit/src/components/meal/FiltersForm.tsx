@@ -24,7 +24,7 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   const [prepStyle, setPrepStyle] = useState(filters.prepStyle || "Standard");
 
   // Macros
-  const [macrosEnabled, setMacrosEnabled] = useState(true);
+  const [macrosEnabled, setMacrosEnabled] = useState(filters.macrosEnabled);
   const [calories, setCalories] = useState(filters.calories || 2000);
   const [protein, setProtein] = useState(filters.protein || 150);
   const [carbs, setCarbs] = useState(filters.carbs || 200);
@@ -34,14 +34,14 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   const [mealsPerDay, setMealsPerDay] = useState(filters.mealsPerDay || 4);
 
   // Cooking time
-  const [cookingEnabled, setCookingEnabled] = useState(true);
+  const [cookingEnabled, setCookingEnabled] = useState(filters.cookingEnabled);
   const [cookingTime, setCookingTime] = useState(filters.cookingTime || 30);
 
   // Budget
-  const [budgetEnabled, setBudgetEnabled] = useState(true);
+  const [budgetEnabled, setBudgetEnabled] = useState(filters.budgetEnabled);
 
   // Prep Style
-  const [prepEnabled, setPrepEnabled] = useState(true);
+  const [prepEnabled, setPrepEnabled] = useState(filters.prepEnabled);
 
   // Preferences/dislikes
   const [preferencesList, setPreferencesList] = useState<string[]>([]);
@@ -108,9 +108,9 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
       macros: macrosEnabled,
       budget: budgetEnabled,
       cooking: cookingEnabled,
-       prep: prepEnabled,
-       ingredients: ingredientsEnabled,
-       requestedDish: requestedDishEnabled,
+      prep: prepEnabled,
+      ingredients: ingredientsEnabled,
+      requestedDish: requestedDishEnabled,
       ...newValues,
     };
     await AsyncStorage.setItem("filterToggles", JSON.stringify(toggles));
@@ -121,16 +121,21 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
     setFilters({
       ...filters,
       fitnessGoal,
-      budgetLevel: budgetEnabled ? budgetLevel : undefined,
-      prepStyle: prepEnabled ? prepStyle : undefined,
-      calories: macrosEnabled ? calories : undefined,
-      protein: macrosEnabled ? protein : undefined,
-      carbs: macrosEnabled ? carbs : undefined,
-      fat: macrosEnabled ? fat : undefined,
-      mealsPerDay: showMealsPerDay ? mealsPerDay : undefined,
-      cookingTime: cookingEnabled ? cookingTime : undefined,
+      budgetLevel,
+      prepStyle,
+      calories,
+      protein,
+      carbs,
+      fat,
+      mealsPerDay,
+      cookingTime,
       preferences: preferencesList,
       dislikes: dislikesList,
+      ingredients: ingredientsList,
+      macrosEnabled,
+      budgetEnabled,
+      cookingEnabled,
+      prepEnabled,
       ingredientsEnabled,
       requestedDishEnabled,
     });

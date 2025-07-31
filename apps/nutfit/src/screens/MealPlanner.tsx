@@ -81,7 +81,6 @@ export default function MealPlanner() {
   const handleSingleMeal = async () => {
     try {
       setLoading("single");
-      filters.ingredients = filters.selectedIngredients || [];
       filters.ingredientsEnabled = true;
       filters.requestedDishEnabled = false;
       const meal = await generateSingleMeal(filters, recentMeals.map(m => m.name));
