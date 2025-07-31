@@ -283,13 +283,13 @@ export default function MealPlanner() {
           onPress={() => { LayoutAnimation.easeInEaseOut(); setShowMealOfTheDay(!showMealOfTheDay); }}
           className="flex-row justify-between items-center"
         >
-          <Text className="text-white text-lg font-semibold mb-3 mt-4">Meal of the Day</Text>
+          <Text className="text-white text-lg font-semibold mb-3">Meal of the Day</Text>
           <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
         </TouchableOpacity>
 
         {showMealOfTheDay && (
           <TouchableOpacity
-            className="bg-neutral-900 rounded-2xl overflow-hidden mb-6"
+            className="bg-neutral-900 rounded-2xl overflow-hidden mb-3"
             onPress={() => safeNavigate(mealOfTheDay)}
           >
             <Image

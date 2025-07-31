@@ -78,6 +78,7 @@ Respond ONLY with valid JSON like this:
 // Full Meal Plan with strict filters & retry
 export const generateMealPlan = functions.https.onCall(async (data) => {
   const { calories, protein, carbs, fat, preferences, dislikes, mealsPerDay } = data;
+  const recentMealNames = data.recentMealNames?.join(", ") || "None";
   const bannedFoods = dislikes
     ? dislikes.split(",").map(f => f.trim()).filter(Boolean)
     : [];
@@ -90,9 +91,9 @@ export const generateMealPlan = functions.https.onCall(async (data) => {
 
     const prompt = `
 You are a professional chef and your job is to curate delicious meals.
-
 STRICT RULES:
 1. Create exactly ${mealsPerDay} delicious and creative meals.
+Do NOT generate any meal that is identical or very similar to these: ${recentMealNames}.
 2. Total macros: ${calories} kcal, ${protein}g P, ${carbs}g C, ${fat}g F (±5% total).
 3. Absolutely exclude these foods: ${bannedFoods.join(", ") || "None"}.
    - These foods must NOT appear in any meal.
