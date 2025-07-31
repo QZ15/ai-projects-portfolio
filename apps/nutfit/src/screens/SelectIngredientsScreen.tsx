@@ -20,7 +20,7 @@ export default function SelectIngredientsScreen({ navigation }) {
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView>
         <Header title="Ingredient Filters" navigation={navigation} />
-        <FiltersForm />
+        <FiltersForm showIngredients />
       </ScrollView>
     </SafeAreaView>
   );
