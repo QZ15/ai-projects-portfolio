@@ -28,10 +28,12 @@ function containsBanned(plan: any[], bannedList: string[]) {
 // Single Meal
 export const generateSingleMeal = functions.https.onCall(async (data) => {
   const { ingredients, preferences } = data;
+  const recentMealNames = data.recentMealNames?.join(", ") || "None";
 
   const prompt = `
-You are a personal chef and your job is to curate delicious meals for an athlete.
-Create a healthy but delicious meal based on: ${ingredients?.length ? ingredients.join(", ") : "any ingredients"}.
+You are a professional chef and your job is to curate delicious meals.
+Do NOT generate any meal that is identical or very similar to these: ${recentMealNames}.
+Create a delicious meal based on: ${ingredients?.length ? ingredients.join(", ") : "any ingredients"}.
 Preferences: ${preferences || "None"}.
 
 Respond ONLY with valid JSON like this:
@@ -87,7 +89,7 @@ export const generateMealPlan = functions.https.onCall(async (data) => {
     attempt++;
 
     const prompt = `
-You are a personal chef and your job is to curate delicious meals for an athlete.
+You are a professional chef and your job is to curate delicious meals.
 
 STRICT RULES:
 1. Create exactly ${mealsPerDay} delicious and creative meals.
@@ -157,6 +159,7 @@ Return JSON like:
 
 export const generateRequestedMeal = functions.https.onCall(async (data) => {
   const { requestedDish } = data;
+  const recentMealNames = data.recentMealNames?.join(", ") || "None";
 
   functions.logger.info(`📩 Requested Dish: ${requestedDish}`);
 
@@ -169,7 +172,8 @@ export const generateRequestedMeal = functions.https.onCall(async (data) => {
 
   const prompt = `
 You are a professional chef and nutritionist.
-Create a healthy recipe for: "${requestedDish}".
+Do NOT generate any meal that is identical or very similar to these: ${recentMealNames}.
+Create a recipe for: "${requestedDish}".
 It must include:
 - mealType (Breakfast, Lunch, Dinner, or Snack)
 - name

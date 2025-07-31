@@ -4,6 +4,7 @@ import { MealOfTheDayProvider } from "./src/context/MealOfTheDayContext";
 import { FavoritesProvider } from "./src/context/FavoritesContext";
 import { TodayMealsProvider } from "./src/context/TodayMealsContext";
 import { MealFilterProvider } from "./src/context/MealFilterContext";
+import { RecentMealsProvider } from "./src/context/RecentMealsContext";
 
 export default function App() {
   return (
@@ -11,7 +12,9 @@ export default function App() {
       <FavoritesProvider>
         <TodayMealsProvider>
           <MealOfTheDayProvider>
-            <RootNavigator />
+            <RecentMealsProvider>
+              <RootNavigator />
+            </RecentMealsProvider>
           </MealOfTheDayProvider>
         </TodayMealsProvider>
       </FavoritesProvider>
