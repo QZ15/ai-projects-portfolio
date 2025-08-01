@@ -310,13 +310,28 @@ export default function MealPlanner() {
 
                 {/* Right Section */}
                 <View className="flex-row items-center">
-                  <TouchableOpacity onPress={() => navigation.navigate("RequestMeal")}>
+                  <TouchableOpacity onPress={() => navigation.navigate("RequestMeal")}> 
                     <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
                   </TouchableOpacity>
                   {loading === "requested"
                     ? <ActivityIndicator color="#fff" />
                     : <Ionicons name="chevron-forward" size={18} color="#6B7280" />}
                 </View>
+              </TouchableOpacity>
+
+              {/* Grocery List */}
+              <TouchableOpacity
+                className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mt-3"
+                onPress={() => navigation.navigate("GroceryList")}
+              >
+                <View className="flex-row items-center flex-1">
+                  <Ionicons name="cart-outline" size={20} color="#fff" />
+                  <View className="ml-3">
+                    <Text className="text-white text-base font-semibold">Grocery List</Text>
+                    <Text className="text-gray-400 text-xs mt-0.5">Ingredients for Today’s Meals</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#6B7280" />
               </TouchableOpacity>
             </View>
           </View>
