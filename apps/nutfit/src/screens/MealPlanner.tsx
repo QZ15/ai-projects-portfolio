@@ -68,6 +68,11 @@ export default function MealPlanner() {
       setLoading("plan");
       filters.ingredientsEnabled = false;
       filters.requestedDishEnabled = false;
+      filters.macrosEnabled = true;
+      if (filters.calories < 1000) filters.calories = 2000;
+      if (filters.protein < 50) filters.protein = 150;
+      if (filters.carbs < 50) filters.carbs = 200;
+      if (filters.fat < 20) filters.fat = 70;
       const plan = await generateMealPlan(filters, recentMeals.map(m => m.name));
       if (!Array.isArray(plan) || plan.length === 0) throw new Error("Empty meal plan");
       setPlanMeals(plan.map(withFallbackImage));

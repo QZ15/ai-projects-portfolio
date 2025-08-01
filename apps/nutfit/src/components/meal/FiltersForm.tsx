@@ -18,6 +18,11 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   const { filters, setFilters } = useMealFilters();
   const navigation = useNavigation();
 
+  const singleMeal = showIngredients || showRequestedDish;
+
+  // Requested dish text
+  const [requestedDish, setRequestedDish] = useState(filters.requestedDish || "");
+
   // Main state
   const [fitnessGoal, setFitnessGoal] = useState(filters.fitnessGoal || "Maintain");
   const [budgetLevel, setBudgetLevel] = useState(filters.budgetLevel || "Medium");
@@ -25,10 +30,10 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
 
   // Macros
   const [macrosEnabled, setMacrosEnabled] = useState(filters.macrosEnabled);
-  const [calories, setCalories] = useState(filters.calories || 2000);
-  const [protein, setProtein] = useState(filters.protein || 150);
-  const [carbs, setCarbs] = useState(filters.carbs || 200);
-  const [fat, setFat] = useState(filters.fat || 70);
+  const [calories, setCalories] = useState(filters.calories || (singleMeal ? 600 : 2000));
+  const [protein, setProtein] = useState(filters.protein || (singleMeal ? 30 : 150));
+  const [carbs, setCarbs] = useState(filters.carbs || (singleMeal ? 50 : 200));
+  const [fat, setFat] = useState(filters.fat || (singleMeal ? 20 : 70));
 
   // Meals per day
   const [mealsPerDay, setMealsPerDay] = useState(filters.mealsPerDay || 4);
@@ -55,6 +60,11 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   const [ingredientsEnabled, setIngredientsEnabled] = useState(filters.ingredientsEnabled);
   const [requestedDishEnabled, setRequestedDishEnabled] = useState(filters.requestedDishEnabled);
 
+  const calorieRange = singleMeal ? { min: 200, max: 1500 } : { min: 1000, max: 6000 };
+  const proteinRange = singleMeal ? { min: 10, max: 100 } : { min: 50, max: 300 };
+  const carbsRange = singleMeal ? { min: 10, max: 200 } : { min: 50, max: 500 };
+  const fatRange = singleMeal ? { min: 5, max: 70 } : { min: 20, max: 200 };
+
   // 🔹 Load preferences, dislikes, and toggles from AsyncStorage
   useEffect(() => {
     (async () => {
@@ -68,15 +78,18 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
         setDislikesList(savedDislikes ? JSON.parse(savedDislikes) : []);
         setIngredientsList(savedIngredients ? JSON.parse(savedIngredients) : []);
 
-        if (calories < 1000) setCalories(1000);
-        if (calories > 6000) setCalories(6000);
-
         const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 
-        setCalories(clamp(filters.calories || 2000, 1000, 6000));
-        setProtein(clamp(filters.protein || 150, 50, 300));
-        setCarbs(clamp(filters.carbs || 200, 50, 500));
-        setFat(clamp(filters.fat || 70, 20, 200));
+        setCalories(
+          clamp(filters.calories || (singleMeal ? 600 : 2000), calorieRange.min, calorieRange.max)
+        );
+        setProtein(
+          clamp(filters.protein || (singleMeal ? 30 : 150), proteinRange.min, proteinRange.max)
+        );
+        setCarbs(
+          clamp(filters.carbs || (singleMeal ? 50 : 200), carbsRange.min, carbsRange.max)
+        );
+        setFat(clamp(filters.fat || (singleMeal ? 20 : 70), fatRange.min, fatRange.max));
 
         if (savedToggles) {
           const toggles = JSON.parse(savedToggles);
@@ -138,6 +151,7 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
       prepEnabled,
       ingredientsEnabled,
       requestedDishEnabled,
+      requestedDish,
     });
     await saveToggles({});
     await AsyncStorage.setItem("ingredients", JSON.stringify(ingredientsList));
@@ -243,8 +257,8 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
                 className="bg-neutral-800 text-white p-3 rounded-xl"
                 placeholder="e.g. Hakka Chili Chicken"
                 placeholderTextColor="#6B7280"
-                value={filters.requestedDish || ""}
-                onChangeText={(t) => setFilters({ ...filters, requestedDish: t })}
+                value={requestedDish}
+                onChangeText={setRequestedDish}
               />
             )}
           </View>
@@ -317,10 +331,10 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
           </View>
           {macrosEnabled && (
             <>
-              {renderSlider("Calories", calories, setCalories, 1000, 6000, 50)}
-              {renderSlider("Protein", protein, setProtein, 50, 300, 5)}
-              {renderSlider("Carbs", carbs, setCarbs, 50, 500, 5)}
-              {renderSlider("Fat", fat, setFat, 20, 200, 1)}
+              {renderSlider("Calories", calories, setCalories, calorieRange.min, calorieRange.max, 50)}
+              {renderSlider("Protein", protein, setProtein, proteinRange.min, proteinRange.max, 5)}
+              {renderSlider("Carbs", carbs, setCarbs, carbsRange.min, carbsRange.max, 5)}
+              {renderSlider("Fat", fat, setFat, fatRange.min, fatRange.max, 1)}
             </>
           )}
         </View>

@@ -1,9 +1,15 @@
 export function buildPromptFromFilters(filters: any) {
   const lines: string[] = [];
 
+  if (filters.requestedDishEnabled && filters.requestedDish) {
+    lines.push(`Requested dish: ${filters.requestedDish}.`);
+  }
   if (filters.macrosEnabled) {
+    const macroLine = `Target macros: ${filters.calories} kcal, ${filters.protein}g P, ${filters.carbs}g C, ${filters.fat}g F.`;
     lines.push(
-      `Target macros: ${filters.calories} kcal, ${filters.protein}g P, ${filters.carbs}g C, ${filters.fat}g F.`
+      filters.requestedDishEnabled && filters.requestedDish
+        ? `${macroLine} Apply these macros to the requested dish.`
+        : macroLine
     );
   }
   if (filters.budgetEnabled) {
@@ -17,9 +23,6 @@ export function buildPromptFromFilters(filters: any) {
   }
   if (filters.ingredientsEnabled && Array.isArray(filters.ingredients) && filters.ingredients.length > 0) {
     lines.push(`Use these ingredients: ${filters.ingredients.join(", ")}.`);
-  }
-  if (filters.requestedDishEnabled && filters.requestedDish) {
-    lines.push(`Requested dish: ${filters.requestedDish}.`);
   }
   if (Array.isArray(filters.preferences) && filters.preferences.length > 0) {
     lines.push(`Preferences: ${filters.preferences.join(", ")}.`);
