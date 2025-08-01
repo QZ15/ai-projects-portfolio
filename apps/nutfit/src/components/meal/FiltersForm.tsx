@@ -38,6 +38,10 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
 
   // Macros
   const [macrosEnabled, setMacrosEnabled] = useState(filters.macrosEnabled);
+  const [caloriesEnabled, setCaloriesEnabled] = useState(filters.caloriesEnabled);
+  const [proteinEnabled, setProteinEnabled] = useState(filters.proteinEnabled);
+  const [carbsEnabled, setCarbsEnabled] = useState(filters.carbsEnabled);
+  const [fatEnabled, setFatEnabled] = useState(filters.fatEnabled);
   const [calories, setCalories] = useState(macroDefaults.calories);
   const [protein, setProtein] = useState(macroDefaults.protein);
   const [carbs, setCarbs] = useState(macroDefaults.carbs);
@@ -104,6 +108,10 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
           setPrepEnabled(toggles.prep);
           if (toggles.ingredients !== undefined) setIngredientsEnabled(toggles.ingredients);
           if (toggles.requestedDish !== undefined) setRequestedDishEnabled(toggles.requestedDish);
+          if (toggles.calories !== undefined) setCaloriesEnabled(toggles.calories);
+          if (toggles.protein !== undefined) setProteinEnabled(toggles.protein);
+          if (toggles.carbs !== undefined) setCarbsEnabled(toggles.carbs);
+          if (toggles.fat !== undefined) setFatEnabled(toggles.fat);
         }
       } catch (e) {
         console.error("Error loading filters", e);
@@ -120,6 +128,10 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
       prep: boolean;
       ingredients: boolean;
       requestedDish: boolean;
+      calories: boolean;
+      protein: boolean;
+      carbs: boolean;
+      fat: boolean;
     }>
   ) => {
     const toggles = {
@@ -129,6 +141,10 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
       prep: prepEnabled,
       ingredients: ingredientsEnabled,
       requestedDish: requestedDishEnabled,
+      calories: caloriesEnabled,
+      protein: proteinEnabled,
+      carbs: carbsEnabled,
+      fat: fatEnabled,
       ...newValues,
     };
     await AsyncStorage.setItem("filterToggles", JSON.stringify(toggles));
@@ -136,28 +152,28 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
 
   // 🔹 Save filters
   const handleSave = async () => {
-    setFilters({
-      ...filters,
-      fitnessGoal,
-      budgetLevel,
-      prepStyle,
-      calories,
-      protein,
-      carbs,
-      fat,
-      mealsPerDay,
-      cookingTime,
-      preferences: preferencesList,
-      dislikes: dislikesList,
-      ingredients: ingredientsList,
-      macrosEnabled,
-      budgetEnabled,
-      cookingEnabled,
-      prepEnabled,
-      ingredientsEnabled,
-      requestedDishEnabled,
-      requestedDish,
-    });
+      setFilters({
+        ...filters,
+        fitnessGoal,
+        budgetLevel,
+        prepStyle,
+        mealsPerDay,
+        cookingTime,
+        preferences: preferencesList,
+        dislikes: dislikesList,
+        ingredients: ingredientsList,
+        macrosEnabled,
+        caloriesEnabled,
+        proteinEnabled,
+        carbsEnabled,
+        fatEnabled,
+        budgetEnabled,
+        cookingEnabled,
+        prepEnabled,
+        ingredientsEnabled,
+        requestedDishEnabled,
+        requestedDish,
+      });
     await saveToggles({});
     await AsyncStorage.setItem("ingredients", JSON.stringify(ingredientsList));
     await AsyncStorage.setItem(macrosKey, JSON.stringify({ calories, protein, carbs, fat }));
@@ -240,6 +256,53 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
         value={value}
         onValueChange={(v) => setValue(Math.min(Math.max(v, min), max))}
       />
+    </View>
+  );
+
+  const renderMacroSlider = (
+    label: string,
+    value: number,
+    setValue: (v: number) => void,
+    min: number,
+    max: number,
+    step: number,
+    enabled: boolean,
+    setEnabled: (v: boolean) => void
+  ) => (
+    <View className="mb-4">
+      <View className="flex-row justify-between items-center mb-3">
+        <Text className="text-gray-300 capitalize">{label}</Text>
+        <View className="flex-row items-center">
+          {enabled && (
+            <TextInput
+              className="bg-neutral-800 text-white px-3 py-1 rounded-xl w-16 text-center mr-2"
+              keyboardType="numeric"
+              value={String(value)}
+              onChangeText={(val) => {
+                const num = Number(val) || min;
+                setValue(Math.min(Math.max(num, min), max));
+              }}
+            />
+          )}
+          <Switch
+            value={enabled}
+            onValueChange={setEnabled}
+            trackColor={{ false: "#6B7280", true: "#a3a3a3" }}
+          />
+        </View>
+      </View>
+      {enabled && (
+        <Slider
+          minimumValue={min}
+          maximumValue={max}
+          step={step}
+          minimumTrackTintColor="#9CA3AF"
+          maximumTrackTintColor="#3F3F46"
+          thumbTintColor="#fff"
+          value={value}
+          onValueChange={(v) => setValue(Math.min(Math.max(v, min), max))}
+        />
+      )}
     </View>
   );
 
@@ -337,10 +400,46 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
           </View>
           {macrosEnabled && (
             <>
-              {renderSlider("Calories", calories, setCalories, calorieRange.min, calorieRange.max, 50)}
-              {renderSlider("Protein", protein, setProtein, proteinRange.min, proteinRange.max, 5)}
-              {renderSlider("Carbs", carbs, setCarbs, carbsRange.min, carbsRange.max, 5)}
-              {renderSlider("Fat", fat, setFat, fatRange.min, fatRange.max, 1)}
+              {renderMacroSlider(
+                "Calories",
+                calories,
+                setCalories,
+                calorieRange.min,
+                calorieRange.max,
+                50,
+                caloriesEnabled,
+                setCaloriesEnabled
+              )}
+              {renderMacroSlider(
+                "Protein",
+                protein,
+                setProtein,
+                proteinRange.min,
+                proteinRange.max,
+                5,
+                proteinEnabled,
+                setProteinEnabled
+              )}
+              {renderMacroSlider(
+                "Carbs",
+                carbs,
+                setCarbs,
+                carbsRange.min,
+                carbsRange.max,
+                5,
+                carbsEnabled,
+                setCarbsEnabled
+              )}
+              {renderMacroSlider(
+                "Fat",
+                fat,
+                setFat,
+                fatRange.min,
+                fatRange.max,
+                1,
+                fatEnabled,
+                setFatEnabled
+              )}
             </>
           )}
         </View>

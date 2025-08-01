@@ -16,6 +16,10 @@ interface FilterSettings {
   ingredients: string[];
   requestedDish: string; // 🔹 Added for Request Meal feature
   macrosEnabled: boolean;
+  caloriesEnabled: boolean;
+  proteinEnabled: boolean;
+  carbsEnabled: boolean;
+  fatEnabled: boolean;
   budgetEnabled: boolean;
   cookingEnabled: boolean;
   prepEnabled: boolean;
@@ -38,6 +42,10 @@ const defaultFilters: FilterSettings = {
   ingredients: [],
   requestedDish: "", // 🔹 Default empty
   macrosEnabled: true,
+  caloriesEnabled: true,
+  proteinEnabled: true,
+  carbsEnabled: true,
+  fatEnabled: true,
   budgetEnabled: true,
   cookingEnabled: true,
   prepEnabled: true,

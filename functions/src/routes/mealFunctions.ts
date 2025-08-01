@@ -31,6 +31,10 @@ function normalizeFilters(filters: any = {}) {
           .filter(Boolean)
       : [],
     macrosEnabled: filters?.macrosEnabled ?? false,
+    caloriesEnabled: filters?.caloriesEnabled ?? false,
+    proteinEnabled: filters?.proteinEnabled ?? false,
+    carbsEnabled: filters?.carbsEnabled ?? false,
+    fatEnabled: filters?.fatEnabled ?? false,
     budgetEnabled: filters?.budgetEnabled ?? false,
     cookingEnabled: filters?.cookingEnabled ?? false,
     prepEnabled: filters?.prepEnabled ?? false,
