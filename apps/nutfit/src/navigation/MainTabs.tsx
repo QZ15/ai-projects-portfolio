@@ -5,28 +5,16 @@ import { Ionicons } from "@expo/vector-icons";
 
 // Screens
 import DashboardScreen from "../screens/DashboardScreen";
-import WorkoutPlannerScreen from "../screens/WorkoutPlannerScreen";
-import WorkoutDetailsScreen from "../screens/WorkoutDetailsScreen";
 import Scheduler from "../screens/Scheduler";
 import ScheduleDetailsScreen from "../screens/ScheduleDetailsScreen";
 const Progress = lazy(() => import("../screens/Progress"));
 import SettingsScreen from "../screens/SettingsScreen";
 import MealStackNavigator from "./MealStackNavigator";
+import WorkoutStackNavigator from "./WorkoutStackNavigator";
 
 // Navigators
 const Tab = createBottomTabNavigator();
-const WorkoutStack = createNativeStackNavigator();
 const ScheduleStack = createNativeStackNavigator();
-
-// --- Workout Stack ---
-function WorkoutStackNavigator() {
-  return (
-    <WorkoutStack.Navigator screenOptions={{ headerShown: false }}>
-      <WorkoutStack.Screen name="WorkoutPlanner" component={WorkoutPlannerScreen} />
-      <WorkoutStack.Screen name="WorkoutDetails" component={WorkoutDetailsScreen} />
-    </WorkoutStack.Navigator>
-  );
-}
 
 // --- Schedule Stack ---
 function ScheduleStackNavigator() {

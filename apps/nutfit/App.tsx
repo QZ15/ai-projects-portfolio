@@ -5,19 +5,31 @@ import { FavoritesProvider } from "./src/context/FavoritesContext";
 import { TodayMealsProvider } from "./src/context/TodayMealsContext";
 import { MealFilterProvider } from "./src/context/MealFilterContext";
 import { RecentMealsProvider } from "./src/context/RecentMealsContext";
+import { WorkoutFilterProvider } from "./src/context/WorkoutFilterContext";
+import { WorkoutFavoritesProvider } from "./src/context/WorkoutFavoritesContext";
+import { TodayWorkoutsProvider } from "./src/context/TodayWorkoutsContext";
+import { RecentWorkoutsProvider } from "./src/context/RecentWorkoutsContext";
 
 export default function App() {
   return (
     <MealFilterProvider>
-      <FavoritesProvider>
-        <TodayMealsProvider>
-          <MealOfTheDayProvider>
-            <RecentMealsProvider>
-              <RootNavigator />
-            </RecentMealsProvider>
-          </MealOfTheDayProvider>
-        </TodayMealsProvider>
-      </FavoritesProvider>
+      <WorkoutFilterProvider>
+        <FavoritesProvider>
+          <WorkoutFavoritesProvider>
+            <TodayMealsProvider>
+              <TodayWorkoutsProvider>
+                <MealOfTheDayProvider>
+                  <RecentMealsProvider>
+                    <RecentWorkoutsProvider>
+                      <RootNavigator />
+                    </RecentWorkoutsProvider>
+                  </RecentMealsProvider>
+                </MealOfTheDayProvider>
+              </TodayWorkoutsProvider>
+            </TodayMealsProvider>
+          </WorkoutFavoritesProvider>
+        </FavoritesProvider>
+      </WorkoutFilterProvider>
     </MealFilterProvider>
   );
 }
