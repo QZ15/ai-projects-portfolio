@@ -18,30 +18,47 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   const { filters, setFilters } = useMealFilters();
   const navigation = useNavigation();
 
+  const singleMeal = showIngredients || showRequestedDish;
+  const macrosKey = showRequestedDish
+    ? "macrosRequested"
+    : singleMeal
+    ? "macrosSingle"
+    : "macrosPlan";
+  const macroDefaults = singleMeal
+    ? { calories: 600, protein: 30, carbs: 50, fat: 20 }
+    : { calories: 2000, protein: 150, carbs: 200, fat: 70 };
+
+  // Requested dish text
+  const [requestedDish, setRequestedDish] = useState(filters.requestedDish || "");
+
   // Main state
   const [fitnessGoal, setFitnessGoal] = useState(filters.fitnessGoal || "Maintain");
   const [budgetLevel, setBudgetLevel] = useState(filters.budgetLevel || "Medium");
   const [prepStyle, setPrepStyle] = useState(filters.prepStyle || "Standard");
 
   // Macros
-  const [macrosEnabled, setMacrosEnabled] = useState(true);
-  const [calories, setCalories] = useState(filters.calories || 2000);
-  const [protein, setProtein] = useState(filters.protein || 150);
-  const [carbs, setCarbs] = useState(filters.carbs || 200);
-  const [fat, setFat] = useState(filters.fat || 70);
+  const [macrosEnabled, setMacrosEnabled] = useState(filters.macrosEnabled);
+  const [caloriesEnabled, setCaloriesEnabled] = useState(filters.caloriesEnabled);
+  const [proteinEnabled, setProteinEnabled] = useState(filters.proteinEnabled);
+  const [carbsEnabled, setCarbsEnabled] = useState(filters.carbsEnabled);
+  const [fatEnabled, setFatEnabled] = useState(filters.fatEnabled);
+  const [calories, setCalories] = useState(macroDefaults.calories);
+  const [protein, setProtein] = useState(macroDefaults.protein);
+  const [carbs, setCarbs] = useState(macroDefaults.carbs);
+  const [fat, setFat] = useState(macroDefaults.fat);
 
   // Meals per day
   const [mealsPerDay, setMealsPerDay] = useState(filters.mealsPerDay || 4);
 
   // Cooking time
-  const [cookingEnabled, setCookingEnabled] = useState(true);
+  const [cookingEnabled, setCookingEnabled] = useState(filters.cookingEnabled);
   const [cookingTime, setCookingTime] = useState(filters.cookingTime || 30);
 
   // Budget
-  const [budgetEnabled, setBudgetEnabled] = useState(true);
+  const [budgetEnabled, setBudgetEnabled] = useState(filters.budgetEnabled);
 
   // Prep Style
-  const [prepEnabled, setPrepEnabled] = useState(true);
+  const [prepEnabled, setPrepEnabled] = useState(filters.prepEnabled);
 
   // Preferences/dislikes
   const [preferencesList, setPreferencesList] = useState<string[]>([]);
@@ -52,6 +69,13 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   // Ingredients List
   const [ingredientsList, setIngredientsList] = useState<string[]>([]);
   const [newIngredient, setNewIngredient] = useState("");
+  const [ingredientsEnabled, setIngredientsEnabled] = useState(filters.ingredientsEnabled);
+  const [requestedDishEnabled, setRequestedDishEnabled] = useState(filters.requestedDishEnabled);
+
+  const calorieRange = singleMeal ? { min: 200, max: 1500 } : { min: 1000, max: 6000 };
+  const proteinRange = singleMeal ? { min: 10, max: 100 } : { min: 50, max: 300 };
+  const carbsRange = singleMeal ? { min: 10, max: 200 } : { min: 50, max: 500 };
+  const fatRange = singleMeal ? { min: 5, max: 70 } : { min: 20, max: 200 };
 
   // 🔹 Load preferences, dislikes, and toggles from AsyncStorage
   useEffect(() => {
@@ -66,15 +90,15 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
         setDislikesList(savedDislikes ? JSON.parse(savedDislikes) : []);
         setIngredientsList(savedIngredients ? JSON.parse(savedIngredients) : []);
 
-        if (calories < 1000) setCalories(1000);
-        if (calories > 6000) setCalories(6000);
-
         const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 
-        setCalories(clamp(filters.calories || 2000, 1000, 6000));
-        setProtein(clamp(filters.protein || 150, 50, 300));
-        setCarbs(clamp(filters.carbs || 200, 50, 500));
-        setFat(clamp(filters.fat || 70, 20, 200));
+        const savedMacros = await AsyncStorage.getItem(macrosKey);
+        const macros = savedMacros ? JSON.parse(savedMacros) : macroDefaults;
+
+        setCalories(clamp(macros.calories, calorieRange.min, calorieRange.max));
+        setProtein(clamp(macros.protein, proteinRange.min, proteinRange.max));
+        setCarbs(clamp(macros.carbs, carbsRange.min, carbsRange.max));
+        setFat(clamp(macros.fat, fatRange.min, fatRange.max));
 
         if (savedToggles) {
           const toggles = JSON.parse(savedToggles);
@@ -82,6 +106,12 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
           setBudgetEnabled(toggles.budget);
           setCookingEnabled(toggles.cooking);
           setPrepEnabled(toggles.prep);
+          if (toggles.ingredients !== undefined) setIngredientsEnabled(toggles.ingredients);
+          if (toggles.requestedDish !== undefined) setRequestedDishEnabled(toggles.requestedDish);
+          if (toggles.calories !== undefined) setCaloriesEnabled(toggles.calories);
+          if (toggles.protein !== undefined) setProteinEnabled(toggles.protein);
+          if (toggles.carbs !== undefined) setCarbsEnabled(toggles.carbs);
+          if (toggles.fat !== undefined) setFatEnabled(toggles.fat);
         }
       } catch (e) {
         console.error("Error loading filters", e);
@@ -90,12 +120,31 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   }, []);
 
   // 🔹 Save toggles to AsyncStorage
-  const saveToggles = async (newValues: Partial<{ macros: boolean; budget: boolean; cooking: boolean; prep: boolean }>) => {
+  const saveToggles = async (
+    newValues: Partial<{
+      macros: boolean;
+      budget: boolean;
+      cooking: boolean;
+      prep: boolean;
+      ingredients: boolean;
+      requestedDish: boolean;
+      calories: boolean;
+      protein: boolean;
+      carbs: boolean;
+      fat: boolean;
+    }>
+  ) => {
     const toggles = {
       macros: macrosEnabled,
       budget: budgetEnabled,
       cooking: cookingEnabled,
       prep: prepEnabled,
+      ingredients: ingredientsEnabled,
+      requestedDish: requestedDishEnabled,
+      calories: caloriesEnabled,
+      protein: proteinEnabled,
+      carbs: carbsEnabled,
+      fat: fatEnabled,
       ...newValues,
     };
     await AsyncStorage.setItem("filterToggles", JSON.stringify(toggles));
@@ -103,22 +152,40 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
 
   // 🔹 Save filters
   const handleSave = async () => {
-    setFilters({
+    const updated: any = {
       ...filters,
       fitnessGoal,
-      budgetLevel: budgetEnabled ? budgetLevel : undefined,
-      prepStyle: prepEnabled ? prepStyle : undefined,
-      calories: macrosEnabled ? calories : undefined,
-      protein: macrosEnabled ? protein : undefined,
-      carbs: macrosEnabled ? carbs : undefined,
-      fat: macrosEnabled ? fat : undefined,
-      mealsPerDay: showMealsPerDay ? mealsPerDay : undefined,
-      cookingTime: cookingEnabled ? cookingTime : undefined,
+      budgetLevel,
+      prepStyle,
+      mealsPerDay,
+      cookingTime,
       preferences: preferencesList,
       dislikes: dislikesList,
-    });
+      ingredients: ingredientsList,
+      macrosEnabled,
+      caloriesEnabled,
+      proteinEnabled,
+      carbsEnabled,
+      fatEnabled,
+      budgetEnabled,
+      cookingEnabled,
+      prepEnabled,
+      ingredientsEnabled,
+      requestedDishEnabled,
+      requestedDish,
+    };
+
+    if (macrosKey === "macrosPlan") {
+      updated.calories = calories;
+      updated.protein = protein;
+      updated.carbs = carbs;
+      updated.fat = fat;
+    }
+
+    setFilters(updated);
     await saveToggles({});
     await AsyncStorage.setItem("ingredients", JSON.stringify(ingredientsList));
+    await AsyncStorage.setItem(macrosKey, JSON.stringify({ calories, protein, carbs, fat }));
     navigation.goBack();
   };
 
@@ -201,6 +268,53 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
     </View>
   );
 
+  const renderMacroSlider = (
+    label: string,
+    value: number,
+    setValue: (v: number) => void,
+    min: number,
+    max: number,
+    step: number,
+    enabled: boolean,
+    setEnabled: (v: boolean) => void
+  ) => (
+    <View className="mb-4">
+      <View className="flex-row justify-between items-center mb-3">
+        <Text className="text-gray-300 capitalize">{label}</Text>
+        <View className="flex-row items-center">
+          {enabled && (
+            <TextInput
+              className="bg-neutral-800 text-white px-3 py-1 rounded-xl w-16 text-center mr-2"
+              keyboardType="numeric"
+              value={String(value)}
+              onChangeText={(val) => {
+                const num = Number(val) || min;
+                setValue(Math.min(Math.max(num, min), max));
+              }}
+            />
+          )}
+          <Switch
+            value={enabled}
+            onValueChange={setEnabled}
+            trackColor={{ false: "#6B7280", true: "#a3a3a3" }}
+          />
+        </View>
+      </View>
+      {enabled && (
+        <Slider
+          minimumValue={min}
+          maximumValue={max}
+          step={step}
+          minimumTrackTintColor="#9CA3AF"
+          maximumTrackTintColor="#3F3F46"
+          thumbTintColor="#fff"
+          value={value}
+          onValueChange={(v) => setValue(Math.min(Math.max(v, min), max))}
+        />
+      )}
+    </View>
+  );
+
   return (
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView className="flex-1 px-5 mt-[-36px]">
@@ -208,58 +322,78 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
         {/* Requested Dish */}
         {showRequestedDish && (
           <View className="bg-neutral-900 p-4 rounded-2xl mb-4">
-            <Text className="text-white text-lg font-semibold mb-2">Requested Dish</Text>
-            <TextInput
-              className="bg-neutral-800 text-white p-3 rounded-xl"
-              placeholder="e.g. Hakka Chili Chicken"
-              placeholderTextColor="#6B7280"
-              value={filters.requestedDish || ""}
-              onChangeText={(t) => setFilters({ ...filters, requestedDish: t })}
-            />
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-white text-lg font-semibold">Requested Dish</Text>
+              <Switch
+                value={requestedDishEnabled}
+                onValueChange={setRequestedDishEnabled}
+                trackColor={{ false: "#6B7280", true: "#a3a3a3" }}
+              />
+            </View>
+            {requestedDishEnabled && (
+              <TextInput
+                className="bg-neutral-800 text-white p-3 rounded-xl"
+                placeholder="e.g. Hakka Chili Chicken"
+                placeholderTextColor="#6B7280"
+                value={requestedDish}
+                onChangeText={setRequestedDish}
+              />
+            )}
           </View>
         )}
 
         {/* Ingredient Filter */}
         {showIngredients && (
           <View className="bg-neutral-900 p-4 rounded-2xl mb-4">
-            <Text className="text-white text-lg font-semibold mb-2">Ingredients</Text>
-            <View className="flex-row mt-3">
-              <TextInput
-                className="flex-1 bg-neutral-800 text-white p-3 rounded-xl mr-2"
-                placeholder="Add ingredient..."
-                placeholderTextColor="#6B7280"
-                value={newIngredient}
-                onChangeText={setNewIngredient}
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-white text-lg font-semibold">Ingredients</Text>
+              <Switch
+                value={ingredientsEnabled}
+                onValueChange={setIngredientsEnabled}
+                trackColor={{ false: "#6B7280", true: "#a3a3a3" }}
               />
-              <TouchableOpacity
-                className="bg-white px-4 rounded-xl justify-center"
-                onPress={async () => {
-                  if (!newIngredient.trim()) return;
-                  const updated = [...ingredientsList, newIngredient.trim()];
-                  setIngredientsList(updated);
-                  setNewIngredient("");
-                  await AsyncStorage.setItem("ingredients", JSON.stringify(updated));
-                }}
-              >
-                <Text className="text-black font-semibold">Add</Text>
-              </TouchableOpacity>
             </View>
-            <View className="flex-row flex-wrap gap-2 mt-4">
-              {ingredientsList.map((ing, idx) => (
-                <View key={idx} className="bg-neutral-800 rounded-full px-3 py-1 flex-row items-center">
-                  <Text className="text-white mr-2">{ing}</Text>
+            {ingredientsEnabled && (
+              <>
+                <View className="flex-row mt-3">
+                  <TextInput
+                    className="flex-1 bg-neutral-800 text-white p-3 rounded-xl mr-2"
+                    placeholder="Add ingredient..."
+                    placeholderTextColor="#6B7280"
+                    value={newIngredient}
+                    onChangeText={setNewIngredient}
+                  />
                   <TouchableOpacity
+                    className="bg-white px-4 rounded-xl justify-center"
                     onPress={async () => {
-                      const updated = ingredientsList.filter((_, i) => i !== idx);
+                      if (!newIngredient.trim()) return;
+                      const updated = [...ingredientsList, newIngredient.trim()];
                       setIngredientsList(updated);
+                      setNewIngredient("");
                       await AsyncStorage.setItem("ingredients", JSON.stringify(updated));
                     }}
                   >
-                    <Ionicons name="close" size={14} color="#9CA3AF" />
+                    <Text className="text-black font-semibold">Add</Text>
                   </TouchableOpacity>
                 </View>
-              ))}
-            </View>
+                <View className="flex-row flex-wrap gap-2 mt-4">
+                  {ingredientsList.map((ing, idx) => (
+                    <View key={idx} className="bg-neutral-800 rounded-full px-3 py-1 flex-row items-center">
+                      <Text className="text-white mr-2">{ing}</Text>
+                      <TouchableOpacity
+                        onPress={async () => {
+                          const updated = ingredientsList.filter((_, i) => i !== idx);
+                          setIngredientsList(updated);
+                          await AsyncStorage.setItem("ingredients", JSON.stringify(updated));
+                        }}
+                      >
+                        <Ionicons name="close" size={14} color="#9CA3AF" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
           </View>
         )}
 
@@ -275,10 +409,46 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
           </View>
           {macrosEnabled && (
             <>
-              {renderSlider("Calories", calories, setCalories, 1000, 6000, 50)}
-              {renderSlider("Protein", protein, setProtein, 50, 300, 5)}
-              {renderSlider("Carbs", carbs, setCarbs, 50, 500, 5)}
-              {renderSlider("Fat", fat, setFat, 20, 200, 1)}
+              {renderMacroSlider(
+                "Calories",
+                calories,
+                setCalories,
+                calorieRange.min,
+                calorieRange.max,
+                50,
+                caloriesEnabled,
+                setCaloriesEnabled
+              )}
+              {renderMacroSlider(
+                "Protein",
+                protein,
+                setProtein,
+                proteinRange.min,
+                proteinRange.max,
+                5,
+                proteinEnabled,
+                setProteinEnabled
+              )}
+              {renderMacroSlider(
+                "Carbs",
+                carbs,
+                setCarbs,
+                carbsRange.min,
+                carbsRange.max,
+                5,
+                carbsEnabled,
+                setCarbsEnabled
+              )}
+              {renderMacroSlider(
+                "Fat",
+                fat,
+                setFat,
+                fatRange.min,
+                fatRange.max,
+                1,
+                fatEnabled,
+                setFatEnabled
+              )}
             </>
           )}
         </View>

@@ -1,6 +1,47 @@
 // functions/src/routes/mealFunctions.ts
 import * as functions from "firebase-functions";
 import openai from "../services/openai.js";
+import { buildPromptFromFilters } from "./buildPromptFromFilters.js";
+
+function normalizeFilters(filters: any = {}) {
+  return {
+    ...filters,
+    preferences: Array.isArray(filters?.preferences)
+      ? filters.preferences
+      : filters?.preferences
+      ? String(filters.preferences)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
+    dislikes: Array.isArray(filters?.dislikes)
+      ? filters.dislikes
+      : filters?.dislikes
+      ? String(filters.dislikes)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
+    ingredients: Array.isArray(filters?.ingredients)
+      ? filters.ingredients
+      : filters?.ingredients
+      ? String(filters.ingredients)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
+    macrosEnabled: filters?.macrosEnabled ?? false,
+    caloriesEnabled: filters?.caloriesEnabled ?? false,
+    proteinEnabled: filters?.proteinEnabled ?? false,
+    carbsEnabled: filters?.carbsEnabled ?? false,
+    fatEnabled: filters?.fatEnabled ?? false,
+    budgetEnabled: filters?.budgetEnabled ?? false,
+    cookingEnabled: filters?.cookingEnabled ?? false,
+    prepEnabled: filters?.prepEnabled ?? false,
+    ingredientsEnabled: filters?.ingredientsEnabled ?? false,
+    requestedDishEnabled: filters?.requestedDishEnabled ?? false,
+  };
+}
 
 // Helper: Safe JSON parsing
 function safeParseJSON(content: string) {
@@ -27,14 +68,14 @@ function containsBanned(plan: any[], bannedList: string[]) {
 
 // Single Meal
 export const generateSingleMeal = functions.https.onCall(async (data) => {
-  const { ingredients, preferences } = data;
+  const filters = normalizeFilters(data.filters);
   const recentMealNames = data.recentMealNames?.join(", ") || "None";
+  const filterPrompt = buildPromptFromFilters(filters);
 
   const prompt = `
 You are a professional chef and your job is to curate delicious meals.
 Do NOT generate any meal that is identical or very similar to these: ${recentMealNames}.
-Create a delicious meal based on: ${ingredients?.length ? ingredients.join(", ") : "any ingredients"}.
-Preferences: ${preferences || "None"}.
+${filterPrompt}
 
 Respond ONLY with valid JSON like this:
 {
@@ -77,33 +118,24 @@ Respond ONLY with valid JSON like this:
 
 // Full Meal Plan with strict filters & retry
 export const generateMealPlan = functions.https.onCall(async (data) => {
-  const { calories, protein, carbs, fat, preferences, dislikes, mealsPerDay } = data;
+  const filters = normalizeFilters(data.filters);
   const recentMealNames = data.recentMealNames?.join(", ") || "None";
-  const bannedFoods = dislikes
-    ? dislikes.split(",").map(f => f.trim()).filter(Boolean)
-    : [];
+  const filterPrompt = buildPromptFromFilters(filters);
+  const bannedFoods = filters.dislikes;
 
   let attempt = 0;
   let parsedPlan: any[] = [];
 
-  while (attempt < 2) { // retry once if constraints fail
+  while (attempt < 2) {
     attempt++;
 
     const prompt = `
 You are a professional chef and your job is to curate delicious meals.
-STRICT RULES:
-1. Create exactly ${mealsPerDay} delicious and creative meals.
 Do NOT generate any meal that is identical or very similar to these: ${recentMealNames}.
-2. Total macros: ${calories} kcal, ${protein}g P, ${carbs}g C, ${fat}g F (±5% total).
-3. Absolutely exclude these foods: ${bannedFoods.join(", ") || "None"}.
-   - These foods must NOT appear in any meal.
-   - Replace them with similar nutritional substitutes if needed.
-4. Avoid repeating the same main protein in multiple meals unless requested in preferences.
-5. Output only valid JSON.
+Create exactly ${filters.mealsPerDay} delicious and creative meals.
+${filterPrompt}
 
-Preferences: ${preferences || "None"}.
-
-Return JSON like:
+Respond ONLY with valid JSON array like:
 [
   {
     "mealType": "Breakfast" | "Lunch" | "Dinner" | "Snack",
@@ -125,7 +157,8 @@ Return JSON like:
         "Cook rice according to package instructions.",
         "Serve chicken over rice, drizzle with olive oil."
     ]
-}`;
+  }
+]`;
 
     try {
       const res = await openai.chat.completions.create({
@@ -138,9 +171,8 @@ Return JSON like:
 
       parsedPlan = safeParseJSON(rawOutput);
 
-      // Validation checks
-      if (!Array.isArray(parsedPlan) || parsedPlan.length !== mealsPerDay) {
-        throw new Error(`Invalid meal count: expected ${mealsPerDay}, got ${parsedPlan.length}`);
+      if (!Array.isArray(parsedPlan) || parsedPlan.length !== filters.mealsPerDay) {
+        throw new Error(`Invalid meal count: expected ${filters.mealsPerDay}, got ${parsedPlan.length}`);
       }
 
       if (containsBanned(parsedPlan, bannedFoods)) {
@@ -148,7 +180,6 @@ Return JSON like:
       }
 
       return parsedPlan;
-
     } catch (error: any) {
       functions.logger.error(`❌ Attempt ${attempt} failed`, error);
       if (attempt >= 2) {
@@ -159,22 +190,19 @@ Return JSON like:
 });
 
 export const generateRequestedMeal = functions.https.onCall(async (data) => {
-  const { requestedDish } = data;
+  const filters = normalizeFilters(data.filters);
   const recentMealNames = data.recentMealNames?.join(", ") || "None";
+  const filterPrompt = buildPromptFromFilters(filters);
 
-  functions.logger.info(`📩 Requested Dish: ${requestedDish}`);
-
-  if (!requestedDish || requestedDish.trim() === "") {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "Dish name is required."
-    );
+  if (!filters.requestedDishEnabled || !filters.requestedDish) {
+    throw new functions.https.HttpsError("invalid-argument", "Dish name is required.");
   }
 
   const prompt = `
 You are a professional chef and nutritionist.
 Do NOT generate any meal that is identical or very similar to these: ${recentMealNames}.
-Create a recipe for: "${requestedDish}".
+${filterPrompt}
+The requested dish above is mandatory and takes priority over all macros or other filters. Adjust portions or sides to approach any macro targets, but never substitute a different meal even if the macros cannot be met exactly.
 It must include:
 - mealType (Breakfast, Lunch, Dinner, or Snack)
 - name
