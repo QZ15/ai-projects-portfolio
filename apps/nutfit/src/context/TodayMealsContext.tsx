@@ -18,6 +18,7 @@ export const TodayMealsProvider = ({ children }) => {
   const [purchasedItems, setPurchasedItems] = useState<Record<string, boolean>>({});
   const [pantryItems, setPantryItems] = useState<string[]>([]);
   const [extraItems, setExtraItems] = useState<{ name: string; amount: number; unit: string }[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -26,9 +27,14 @@ export const TodayMealsProvider = ({ children }) => {
       const purchased = await AsyncStorage.getItem("purchasedItems");
       const pantry = await AsyncStorage.getItem("pantryItems");
       const extras = await AsyncStorage.getItem("extraGroceries");
-      if (saved && date === dayjs().format("YYYY-MM-DD")) {
-        setTodayMeals(JSON.parse(saved));
+
+      if (date) {
+        setLastReset(date);
+        if (saved && date === dayjs().format("YYYY-MM-DD")) {
+          setTodayMeals(JSON.parse(saved));
+        }
       }
+
       if (purchased) {
         try {
           setPurchasedItems(JSON.parse(purchased));
@@ -36,6 +42,7 @@ export const TodayMealsProvider = ({ children }) => {
           setPurchasedItems({});
         }
       }
+
       if (pantry) {
         try {
           setPantryItems(JSON.parse(pantry));
@@ -43,6 +50,7 @@ export const TodayMealsProvider = ({ children }) => {
           setPantryItems([]);
         }
       }
+
       if (extras) {
         try {
           setExtraItems(JSON.parse(extras));
@@ -50,11 +58,15 @@ export const TodayMealsProvider = ({ children }) => {
           setExtraItems([]);
         }
       }
+
+      setInitialized(true);
     };
+
     loadData();
   }, []);
 
   useEffect(() => {
+    if (!initialized) return;
     const now = dayjs().format("YYYY-MM-DD");
     if (lastReset !== now) {
       setTodayMeals([]);
@@ -62,19 +74,25 @@ export const TodayMealsProvider = ({ children }) => {
       AsyncStorage.setItem("lastReset", now);
     }
     AsyncStorage.setItem("todayMeals", JSON.stringify(todayMeals));
-  }, [todayMeals]);
+  }, [todayMeals, lastReset, initialized]);
 
   useEffect(() => {
-    AsyncStorage.setItem("purchasedItems", JSON.stringify(purchasedItems));
-  }, [purchasedItems]);
+    if (initialized) {
+      AsyncStorage.setItem("purchasedItems", JSON.stringify(purchasedItems));
+    }
+  }, [purchasedItems, initialized]);
 
   useEffect(() => {
-    AsyncStorage.setItem("pantryItems", JSON.stringify(pantryItems));
-  }, [pantryItems]);
+    if (initialized) {
+      AsyncStorage.setItem("pantryItems", JSON.stringify(pantryItems));
+    }
+  }, [pantryItems, initialized]);
 
   useEffect(() => {
-    AsyncStorage.setItem("extraGroceries", JSON.stringify(extraItems));
-  }, [extraItems]);
+    if (initialized) {
+      AsyncStorage.setItem("extraGroceries", JSON.stringify(extraItems));
+    }
+  }, [extraItems, initialized]);
 
   const addToToday = (meal: any) => {
     setTodayMeals((prev) => {
