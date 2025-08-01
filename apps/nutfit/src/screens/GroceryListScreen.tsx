@@ -38,9 +38,8 @@ export default function GroceryListScreen({ navigation }) {
   }, [todayGroceries]);
 
   const renderGroceryItem = (item: any) => (
-    <TouchableOpacity
+    <View
       key={item.name + item.quantity}
-      onPress={() => togglePurchased(item.name)}
       className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
     >
       <Text
@@ -48,12 +47,19 @@ export default function GroceryListScreen({ navigation }) {
       >
         {item.quantity ? `${item.quantity} ` : ""}{item.display}
       </Text>
-      <Ionicons
-        name={purchasedItems[item.name] ? "checkbox-outline" : "square-outline"}
-        size={20}
-        color={purchasedItems[item.name] ? "#22c55e" : "#6B7280"}
-      />
-    </TouchableOpacity>
+      <View className="flex-row items-center">
+        <TouchableOpacity onPress={() => togglePurchased(item.name)}>
+          <Ionicons
+            name={purchasedItems[item.name] ? "checkbox-outline" : "square-outline"}
+            size={20}
+            color={purchasedItems[item.name] ? "#22c55e" : "#6B7280"}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => addPantryItem(item.name)} className="ml-3">
+          <Ionicons name="archive-outline" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   const renderSimpleItem = (item: any) => (
@@ -103,6 +109,12 @@ export default function GroceryListScreen({ navigation }) {
                 </View>
               ))}
             </ScrollView>
+            <TouchableOpacity
+              onPress={clearPurchased}
+              className="bg-neutral-900 p-4 rounded-2xl items-center mt-4"
+            >
+              <Text className="text-red-400 font-semibold">Clear Purchased Items</Text>
+            </TouchableOpacity>
           </View>
         )}
         {showToday && todayGroceries.length === 0 && (
@@ -157,7 +169,7 @@ export default function GroceryListScreen({ navigation }) {
                 {pantryItems.map((p) => (
                   <TouchableOpacity
                     key={p}
-                    onLongPress={() => removePantryItem(p)}
+                    onPress={() => removePantryItem(p)}
                     className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
                   >
                     <Text className="text-white text-base">
@@ -168,17 +180,6 @@ export default function GroceryListScreen({ navigation }) {
                 ))}
               </ScrollView>
             </View>
-          </View>
-        )}
-
-        {todayGroceries.length > 0 && (
-          <View className="mt-6">
-            <TouchableOpacity
-              onPress={clearPurchased}
-              className="bg-neutral-900 p-4 rounded-2xl items-center"
-            >
-              <Text className="text-red-400 font-semibold">Clear Purchased Items</Text>
-            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
