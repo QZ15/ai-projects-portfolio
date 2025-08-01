@@ -12,6 +12,7 @@ import { useFavorites } from "../context/FavoritesContext";
 import { useTodayMeals } from "../context/TodayMealsContext";
 import { useMealOfTheDay } from "../context/MealOfTheDayContext";
 import { generateRequestedMeal } from "../services/mealService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRecentMeals } from "../context/RecentMealsContext";
 
 export default function MealPlanner() {
@@ -30,6 +31,18 @@ export default function MealPlanner() {
   const { recentMeals } = useRecentMeals();
   const [showRecentMeals, setShowRecentMeals] = useState(true);
   const { addRecentMeal } = useRecentMeals();
+
+  const loadMacros = async (
+    key: string,
+    defaults: { calories: number; protein: number; carbs: number; fat: number }
+  ) => {
+    try {
+      const saved = await AsyncStorage.getItem(key);
+      return saved ? JSON.parse(saved) : defaults;
+    } catch {
+      return defaults;
+    }
+  };
 
   const fallbackImages = {
     Breakfast: "https://images.unsplash.com/photo-1532980400857-e8d9d275d858?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -66,14 +79,24 @@ export default function MealPlanner() {
   const handleAIPlan = async () => {
     try {
       setLoading("plan");
-      filters.ingredientsEnabled = false;
-      filters.requestedDishEnabled = false;
-      filters.macrosEnabled = true;
-      if (filters.calories < 1000) filters.calories = 2000;
-      if (filters.protein < 50) filters.protein = 150;
-      if (filters.carbs < 50) filters.carbs = 200;
-      if (filters.fat < 20) filters.fat = 70;
-      const plan = await generateMealPlan(filters, recentMeals.map(m => m.name));
+      const macros = await loadMacros("macrosPlan", {
+        calories: 2000,
+        protein: 150,
+        carbs: 200,
+        fat: 70,
+      });
+      const planFilters = {
+        ...filters,
+        ...macros,
+        ingredientsEnabled: false,
+        requestedDishEnabled: false,
+        macrosEnabled: true,
+      };
+      if (planFilters.calories < 1000) planFilters.calories = 2000;
+      if (planFilters.protein < 50) planFilters.protein = 150;
+      if (planFilters.carbs < 50) planFilters.carbs = 200;
+      if (planFilters.fat < 20) planFilters.fat = 70;
+      const plan = await generateMealPlan(planFilters, recentMeals.map((m) => m.name));
       if (!Array.isArray(plan) || plan.length === 0) throw new Error("Empty meal plan");
       setPlanMeals(plan.map(withFallbackImage));
     } catch (err) {
@@ -86,9 +109,19 @@ export default function MealPlanner() {
   const handleSingleMeal = async () => {
     try {
       setLoading("single");
-      filters.ingredientsEnabled = true;
-      filters.requestedDishEnabled = false;
-      const meal = await generateSingleMeal(filters, recentMeals.map(m => m.name));
+      const macros = await loadMacros("macrosSingle", {
+        calories: 600,
+        protein: 30,
+        carbs: 50,
+        fat: 20,
+      });
+      const singleFilters = {
+        ...filters,
+        ...macros,
+        ingredientsEnabled: true,
+        requestedDishEnabled: false,
+      };
+      const meal = await generateSingleMeal(singleFilters, recentMeals.map((m) => m.name));
       addRecentMeal(meal);
       if (!meal || !meal.name) throw new Error("Empty single meal");
       safeNavigate(withFallbackImage(meal));
@@ -109,9 +142,19 @@ export default function MealPlanner() {
     }
     try {
       setLoading("requested");
-      filters.ingredientsEnabled = false;
-      filters.requestedDishEnabled = true;
-      const meal = await generateRequestedMeal(filters, recentMeals.map(m => m.name));
+      const macros = await loadMacros("macrosRequested", {
+        calories: 600,
+        protein: 30,
+        carbs: 50,
+        fat: 20,
+      });
+      const requestFilters = {
+        ...filters,
+        ...macros,
+        ingredientsEnabled: false,
+        requestedDishEnabled: true,
+      };
+      const meal = await generateRequestedMeal(requestFilters, recentMeals.map((m) => m.name));
       addRecentMeal(meal);
       if (!meal || !meal.name) throw new Error("Empty requested meal");
       safeNavigate(withFallbackImage(meal));

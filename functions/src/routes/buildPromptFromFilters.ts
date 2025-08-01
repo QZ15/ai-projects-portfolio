@@ -5,10 +5,10 @@ export function buildPromptFromFilters(filters: any) {
     lines.push(`Requested dish: ${filters.requestedDish}.`);
   }
   if (filters.macrosEnabled) {
-    const macroLine = `Target macros: ${filters.calories} kcal, ${filters.protein}g P, ${filters.carbs}g C, ${filters.fat}g F.`;
+    const macroLine = `Target macros (minimum): ${filters.calories} kcal, ${filters.protein}g P, ${filters.carbs}g C, ${filters.fat}g F. Exceed if necessary, but do not go under.`;
     lines.push(
       filters.requestedDishEnabled && filters.requestedDish
-        ? `${macroLine} Apply these macros to the requested dish.`
+        ? `${macroLine} Adjust portions or add compatible sides to keep the requested dish.`
         : macroLine
     );
   }

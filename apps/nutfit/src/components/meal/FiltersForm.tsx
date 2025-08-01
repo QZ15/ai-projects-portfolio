@@ -19,6 +19,14 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
   const navigation = useNavigation();
 
   const singleMeal = showIngredients || showRequestedDish;
+  const macrosKey = showRequestedDish
+    ? "macrosRequested"
+    : singleMeal
+    ? "macrosSingle"
+    : "macrosPlan";
+  const macroDefaults = singleMeal
+    ? { calories: 600, protein: 30, carbs: 50, fat: 20 }
+    : { calories: 2000, protein: 150, carbs: 200, fat: 70 };
 
   // Requested dish text
   const [requestedDish, setRequestedDish] = useState(filters.requestedDish || "");
@@ -30,10 +38,10 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
 
   // Macros
   const [macrosEnabled, setMacrosEnabled] = useState(filters.macrosEnabled);
-  const [calories, setCalories] = useState(filters.calories || (singleMeal ? 600 : 2000));
-  const [protein, setProtein] = useState(filters.protein || (singleMeal ? 30 : 150));
-  const [carbs, setCarbs] = useState(filters.carbs || (singleMeal ? 50 : 200));
-  const [fat, setFat] = useState(filters.fat || (singleMeal ? 20 : 70));
+  const [calories, setCalories] = useState(macroDefaults.calories);
+  const [protein, setProtein] = useState(macroDefaults.protein);
+  const [carbs, setCarbs] = useState(macroDefaults.carbs);
+  const [fat, setFat] = useState(macroDefaults.fat);
 
   // Meals per day
   const [mealsPerDay, setMealsPerDay] = useState(filters.mealsPerDay || 4);
@@ -80,16 +88,13 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
 
         const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 
-        setCalories(
-          clamp(filters.calories || (singleMeal ? 600 : 2000), calorieRange.min, calorieRange.max)
-        );
-        setProtein(
-          clamp(filters.protein || (singleMeal ? 30 : 150), proteinRange.min, proteinRange.max)
-        );
-        setCarbs(
-          clamp(filters.carbs || (singleMeal ? 50 : 200), carbsRange.min, carbsRange.max)
-        );
-        setFat(clamp(filters.fat || (singleMeal ? 20 : 70), fatRange.min, fatRange.max));
+        const savedMacros = await AsyncStorage.getItem(macrosKey);
+        const macros = savedMacros ? JSON.parse(savedMacros) : macroDefaults;
+
+        setCalories(clamp(macros.calories, calorieRange.min, calorieRange.max));
+        setProtein(clamp(macros.protein, proteinRange.min, proteinRange.max));
+        setCarbs(clamp(macros.carbs, carbsRange.min, carbsRange.max));
+        setFat(clamp(macros.fat, fatRange.min, fatRange.max));
 
         if (savedToggles) {
           const toggles = JSON.parse(savedToggles);
@@ -155,6 +160,7 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
     });
     await saveToggles({});
     await AsyncStorage.setItem("ingredients", JSON.stringify(ingredientsList));
+    await AsyncStorage.setItem(macrosKey, JSON.stringify({ calories, protein, carbs, fat }));
     navigation.goBack();
   };
 
