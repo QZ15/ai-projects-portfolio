@@ -24,21 +24,27 @@ export const MealOfTheDayProvider = ({ children }: { children: React.ReactNode }
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.date === today) {
-          setMealOfTheDay(parsed.meal);
+          const meal = parsed.meal || null;
+          if (meal && !meal.image) {
+            meal.image =
+              fallbackImages[meal.mealType] || fallbackImages.Default;
+          }
+          setMealOfTheDay(meal);
           return;
         }
       }
 
       // Fetch new meal from AI
-      const newMeal = await generateSingleMeal([], "Random healthy meal");
-      if (!newMeal.image) {
-        newMeal.image =
-          fallbackImages[newMeal.mealType] || fallbackImages.Default;
+      const newMeal = await generateSingleMeal({}, []);
+      if (newMeal) {
+        if (!newMeal.image) {
+          newMeal.image =
+            fallbackImages[newMeal.mealType] || fallbackImages.Default;
+        }
+        const mealData = { date: today, meal: newMeal };
+        await AsyncStorage.setItem("mealOfTheDay", JSON.stringify(mealData));
+        setMealOfTheDay(newMeal);
       }
-
-      const mealData = { date: today, meal: newMeal };
-      await AsyncStorage.setItem("mealOfTheDay", JSON.stringify(mealData));
-      setMealOfTheDay(newMeal);
     } catch (error) {
       console.error("❌ Error loading meal of the day:", error);
     }

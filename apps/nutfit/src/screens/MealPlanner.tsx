@@ -288,13 +288,13 @@ export default function MealPlanner() {
           <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
         </TouchableOpacity>
 
-        {showMealOfTheDay && (
+        {showMealOfTheDay && mealOfTheDay && (
           <TouchableOpacity
             className="bg-neutral-900 rounded-2xl overflow-hidden mb-3"
-            onPress={() => safeNavigate(mealOfTheDay)}
+            onPress={() => safeNavigate(withFallbackImage(mealOfTheDay))}
           >
             <Image
-              source={{ uri: mealOfTheDay.image }}
+              source={{ uri: withFallbackImage(mealOfTheDay).image }}
               className="w-full h-40"
               resizeMode="cover"
             />
