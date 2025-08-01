@@ -152,32 +152,37 @@ export default function FiltersForm({ showMealsPerDay, showRequestedDish, showIn
 
   // 🔹 Save filters
   const handleSave = async () => {
-      setFilters({
-        ...filters,
-        fitnessGoal,
-        budgetLevel,
-        prepStyle,
-        calories,
-        protein,
-        carbs,
-        fat,
-        mealsPerDay,
-        cookingTime,
-        preferences: preferencesList,
-        dislikes: dislikesList,
-        ingredients: ingredientsList,
-        macrosEnabled,
-        caloriesEnabled,
-        proteinEnabled,
-        carbsEnabled,
-        fatEnabled,
-        budgetEnabled,
-        cookingEnabled,
-        prepEnabled,
-        ingredientsEnabled,
-        requestedDishEnabled,
-        requestedDish,
-      });
+    const updated: any = {
+      ...filters,
+      fitnessGoal,
+      budgetLevel,
+      prepStyle,
+      mealsPerDay,
+      cookingTime,
+      preferences: preferencesList,
+      dislikes: dislikesList,
+      ingredients: ingredientsList,
+      macrosEnabled,
+      caloriesEnabled,
+      proteinEnabled,
+      carbsEnabled,
+      fatEnabled,
+      budgetEnabled,
+      cookingEnabled,
+      prepEnabled,
+      ingredientsEnabled,
+      requestedDishEnabled,
+      requestedDish,
+    };
+
+    if (macrosKey === "macrosPlan") {
+      updated.calories = calories;
+      updated.protein = protein;
+      updated.carbs = carbs;
+      updated.fat = fat;
+    }
+
+    setFilters(updated);
     await saveToggles({});
     await AsyncStorage.setItem("ingredients", JSON.stringify(ingredientsList));
     await AsyncStorage.setItem(macrosKey, JSON.stringify({ calories, protein, carbs, fat }));
