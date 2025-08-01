@@ -21,12 +21,21 @@ export default function GroceryListScreen({ navigation }) {
     purchasedItems,
     togglePurchased,
     clearPurchased,
+    addGroceryItem,
+    removeGroceryItem,
+    extraItems,
   } = useTodayMeals();
 
   const [showToday, setShowToday] = useState(true);
   const [showInPantry, setShowInPantry] = useState(true);
   const [showPantry, setShowPantry] = useState(false);
-  const [newItem, setNewItem] = useState("");
+  const [newGrocery, setNewGrocery] = useState("");
+  const [newPantryItem, setNewPantryItem] = useState("");
+
+  const extraNames = useMemo(
+    () => new Set(extraItems.map((i) => i.name)),
+    [extraItems]
+  );
 
   const groupedGroceries = useMemo(() => {
     const groups: Record<string, typeof todayGroceries> = {};
@@ -55,6 +64,14 @@ export default function GroceryListScreen({ navigation }) {
             color={purchasedItems[item.name] ? "#22c55e" : "#6B7280"}
           />
         </TouchableOpacity>
+        {extraNames.has(item.name) && (
+          <TouchableOpacity
+            onPress={() => removeGroceryItem(item.name)}
+            className="ml-3"
+          >
+            <Ionicons name="trash-outline" size={20} color="#ef4444" />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={() => addPantryItem(item.name)} className="ml-3">
           <Ionicons name="archive-outline" size={20} color="#6B7280" />
         </TouchableOpacity>
@@ -73,10 +90,16 @@ export default function GroceryListScreen({ navigation }) {
     </View>
   );
 
+  const handleAddGrocery = () => {
+    if (!newGrocery.trim()) return;
+    addGroceryItem(newGrocery);
+    setNewGrocery("");
+  };
+
   const handleAddPantry = () => {
-    if (!newItem.trim()) return;
-    addPantryItem(newItem);
-    setNewItem("");
+    if (!newPantryItem.trim()) return;
+    addPantryItem(newPantryItem);
+    setNewPantryItem("");
   };
 
   return (
@@ -99,26 +122,41 @@ export default function GroceryListScreen({ navigation }) {
           </Text>
           <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
         </TouchableOpacity>
-        {showToday && todayGroceries.length > 0 && (
-          <View style={{ maxHeight: todayGroceries.length > 6 ? 450 : undefined }}>
-            <ScrollView>
-              {Object.entries(groupedGroceries).map(([group, items]) => (
-                <View key={group}>
-                  <Text className="text-white font-semibold mt-4 mb-2">{group}</Text>
-                  {items.map(renderGroceryItem)}
-                </View>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              onPress={clearPurchased}
-              className="bg-neutral-900 p-4 rounded-2xl items-center mt-4"
-            >
-              <Text className="text-red-400 font-semibold">Clear Purchased Items</Text>
-            </TouchableOpacity>
+        {showToday && (
+          <View>
+            <View className="flex-row items-center mb-3">
+              <TextInput
+                value={newGrocery}
+                onChangeText={setNewGrocery}
+                placeholder="Add item"
+                placeholderTextColor="#9CA3AF"
+                className="flex-1 bg-neutral-900 text-white p-3 rounded-2xl mr-3"
+              />
+              <TouchableOpacity onPress={handleAddGrocery}>
+                <Ionicons name="add-circle-outline" size={28} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            {todayGroceries.length > 0 ? (
+              <View style={{ maxHeight: todayGroceries.length > 6 ? 450 : undefined }}>
+                <ScrollView>
+                  {Object.entries(groupedGroceries).map(([group, items]) => (
+                    <View key={group}>
+                      <Text className="text-white font-semibold mt-4 mb-2">{group}</Text>
+                      {items.map(renderGroceryItem)}
+                    </View>
+                  ))}
+                </ScrollView>
+                <TouchableOpacity
+                  onPress={clearPurchased}
+                  className="bg-neutral-900 p-4 rounded-2xl items-center mt-4"
+                >
+                  <Text className="text-red-400 font-semibold">Clear Purchased Items</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <Text className="text-gray-400">No groceries needed.</Text>
+            )}
           </View>
-        )}
-        {showToday && todayGroceries.length === 0 && (
-          <Text className="text-gray-400">No groceries needed.</Text>
         )}
 
         {/* In Pantry */}
@@ -154,8 +192,8 @@ export default function GroceryListScreen({ navigation }) {
           <View>
             <View className="flex-row items-center mb-3">
               <TextInput
-                value={newItem}
-                onChangeText={setNewItem}
+                value={newPantryItem}
+                onChangeText={setNewPantryItem}
                 placeholder="Add item"
                 placeholderTextColor="#9CA3AF"
                 className="flex-1 bg-neutral-900 text-white p-3 rounded-2xl mr-3"

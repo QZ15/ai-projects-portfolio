@@ -17,6 +17,7 @@ export const TodayMealsProvider = ({ children }) => {
   const [lastReset, setLastReset] = useState<string>("");
   const [purchasedItems, setPurchasedItems] = useState<Record<string, boolean>>({});
   const [pantryItems, setPantryItems] = useState<string[]>([]);
+  const [extraItems, setExtraItems] = useState<{ name: string; amount: number; unit: string }[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -24,6 +25,7 @@ export const TodayMealsProvider = ({ children }) => {
       const date = await AsyncStorage.getItem("lastReset");
       const purchased = await AsyncStorage.getItem("purchasedItems");
       const pantry = await AsyncStorage.getItem("pantryItems");
+      const extras = await AsyncStorage.getItem("extraGroceries");
       if (saved && date === dayjs().format("YYYY-MM-DD")) {
         setTodayMeals(JSON.parse(saved));
       }
@@ -39,6 +41,13 @@ export const TodayMealsProvider = ({ children }) => {
           setPantryItems(JSON.parse(pantry));
         } catch {
           setPantryItems([]);
+        }
+      }
+      if (extras) {
+        try {
+          setExtraItems(JSON.parse(extras));
+        } catch {
+          setExtraItems([]);
         }
       }
     };
@@ -62,6 +71,10 @@ export const TodayMealsProvider = ({ children }) => {
   useEffect(() => {
     AsyncStorage.setItem("pantryItems", JSON.stringify(pantryItems));
   }, [pantryItems]);
+
+  useEffect(() => {
+    AsyncStorage.setItem("extraGroceries", JSON.stringify(extraItems));
+  }, [extraItems]);
 
   const addToToday = (meal: any) => {
     setTodayMeals((prev) => {
@@ -122,13 +135,19 @@ export const TodayMealsProvider = ({ children }) => {
         map[key].amount += amount;
       });
     });
+    extraItems.forEach(({ name, amount, unit }) => {
+      if (!name) return;
+      const key = `${name}|${unit}`;
+      if (!map[key]) map[key] = { name, amount: 0, unit, group: getGroup(name) };
+      map[key].amount += amount;
+    });
     return Object.values(map).map((v) => ({
       name: v.name,
       display: v.name.charAt(0).toUpperCase() + v.name.slice(1),
       quantity: v.amount ? `${v.amount}${v.unit ? ` ${v.unit}` : ""}` : "",
       group: v.group,
     }));
-  }, [todayMeals]);
+  }, [todayMeals, extraItems]);
 
   const todayGroceries = useMemo(
     () => groceryList.filter((g) => !pantryItems.includes(g.name)),
@@ -174,6 +193,16 @@ export const TodayMealsProvider = ({ children }) => {
     setPantryItems((prev) => prev.filter((n) => n !== name));
   };
 
+  const addGroceryItem = (text: string) => {
+    const { name, amount, unit } = parseIngredient(text);
+    if (!name) return;
+    setExtraItems((prev) => [...prev, { name, amount, unit }]);
+  };
+
+  const removeGroceryItem = (name: string) => {
+    setExtraItems((prev) => prev.filter((i) => i.name !== name));
+  };
+
   return (
     <TodayMealsContext.Provider
       value={{
@@ -186,6 +215,9 @@ export const TodayMealsProvider = ({ children }) => {
         pantryItems,
         addPantryItem,
         removePantryItem,
+        extraItems,
+        addGroceryItem,
+        removeGroceryItem,
         purchasedItems,
         togglePurchased,
         clearPurchased,
