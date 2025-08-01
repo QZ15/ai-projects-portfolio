@@ -8,7 +8,7 @@ export function buildPromptFromFilters(filters: any) {
     const macroLine = `Target macros (minimum): ${filters.calories} kcal, ${filters.protein}g P, ${filters.carbs}g C, ${filters.fat}g F. Exceed if necessary, but do not go under.`;
     lines.push(
       filters.requestedDishEnabled && filters.requestedDish
-        ? `${macroLine} Adjust portions or add compatible sides to keep the requested dish.`
+        ? `${macroLine} You must keep the requested dish exactly as specified. Adjust portion sizes or add compatible sides to approach these macros; if they cannot be met, still return the requested dish with the closest possible macros. Never substitute a different meal.`
         : macroLine
     );
   }

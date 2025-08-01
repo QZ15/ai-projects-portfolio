@@ -198,6 +198,7 @@ export const generateRequestedMeal = functions.https.onCall(async (data) => {
 You are a professional chef and nutritionist.
 Do NOT generate any meal that is identical or very similar to these: ${recentMealNames}.
 ${filterPrompt}
+The requested dish above is mandatory and takes priority over all macros or other filters. Adjust portions or sides to approach any macro targets, but never substitute a different meal even if the macros cannot be met exactly.
 It must include:
 - mealType (Breakfast, Lunch, Dinner, or Snack)
 - name
