@@ -1,7 +1,8 @@
 import React from "react";
-import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { SafeAreaView, ScrollView } from "react-native";
 import WorkoutFiltersForm from "../components/workout/FiltersForm";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { View, Text, TouchableOpacity } from "react-native";
 
 const Header = ({ title, navigation }: any) => (
   <View className="flex-row justify-between items-center mt-3 px-5">
@@ -12,11 +13,13 @@ const Header = ({ title, navigation }: any) => (
   </View>
 );
 
-export default function RequestWorkoutScreen({ navigation }: any) {
+export default function SingleWorkoutFiltersScreen({ navigation }: any) {
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <Header title="Request Workout" navigation={navigation} />
-      <WorkoutFiltersForm showRequestedWorkout showDaysPerWeek={false} />
+      <ScrollView>
+        <Header title="Workout Filters" navigation={navigation} />
+        <WorkoutFiltersForm showDaysPerWeek={false} />
+      </ScrollView>
     </SafeAreaView>
   );
 }

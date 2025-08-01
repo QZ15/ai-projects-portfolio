@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import WorkoutFiltersForm from "../components/workout/FiltersForm";
 
-const Header = ({ title, navigation }) => (
+const Header = ({ title, navigation }: any) => (
   <View className="flex-row justify-between items-center mt-3 px-5">
     <Text className="text-white text-[28px] font-bold">{title}</Text>
     <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -12,7 +12,7 @@ const Header = ({ title, navigation }) => (
   </View>
 );
 
-export default function WorkoutPlanFiltersScreen({ navigation }) {
+export default function WorkoutPlanFiltersScreen({ navigation }: any) {
   return (
     <SafeAreaView className="flex-1 bg-black">
       <Header title="Workout Filters" navigation={navigation} />

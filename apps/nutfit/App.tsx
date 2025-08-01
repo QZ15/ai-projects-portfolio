@@ -7,7 +7,7 @@ import { MealFilterProvider } from "./src/context/MealFilterContext";
 import { RecentMealsProvider } from "./src/context/RecentMealsContext";
 import { WorkoutFilterProvider } from "./src/context/WorkoutFilterContext";
 import { WorkoutFavoritesProvider } from "./src/context/WorkoutFavoritesContext";
-import { TodayWorkoutsProvider } from "./src/context/TodayWorkoutsContext";
+import { WeekWorkoutsProvider } from "./src/context/WeekWorkoutsContext";
 import { RecentWorkoutsProvider } from "./src/context/RecentWorkoutsContext";
 
 export default function App() {
@@ -17,7 +17,7 @@ export default function App() {
         <FavoritesProvider>
           <WorkoutFavoritesProvider>
             <TodayMealsProvider>
-              <TodayWorkoutsProvider>
+              <WeekWorkoutsProvider>
                 <MealOfTheDayProvider>
                   <RecentMealsProvider>
                     <RecentWorkoutsProvider>
@@ -25,7 +25,7 @@ export default function App() {
                     </RecentWorkoutsProvider>
                   </RecentMealsProvider>
                 </MealOfTheDayProvider>
-              </TodayWorkoutsProvider>
+              </WeekWorkoutsProvider>
             </TodayMealsProvider>
           </WorkoutFavoritesProvider>
         </FavoritesProvider>

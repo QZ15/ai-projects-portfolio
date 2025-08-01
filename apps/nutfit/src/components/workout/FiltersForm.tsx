@@ -3,9 +3,9 @@ import { View, Text, TextInput, Switch, TouchableOpacity, ScrollView } from "rea
 import { useWorkoutFilters } from "../../context/WorkoutFilterContext";
 import { useNavigation } from "@react-navigation/native";
 
-interface Props { showRequestedWorkout?: boolean }
+interface Props { showRequestedWorkout?: boolean; showDaysPerWeek?: boolean }
 
-export default function WorkoutFiltersForm({ showRequestedWorkout }: Props) {
+export default function WorkoutFiltersForm({ showRequestedWorkout, showDaysPerWeek = true }: Props) {
   const { filters, setFilters } = useWorkoutFilters();
   const navigation = useNavigation();
 
@@ -42,7 +42,7 @@ export default function WorkoutFiltersForm({ showRequestedWorkout }: Props) {
       timePerWorkout: parseInt(timePerWorkout) || 60,
       muscleGroups: muscleGroups.split(",").map((s) => s.trim()).filter(Boolean),
       excludedExercises: excludedExercises.split(",").map((s) => s.trim()).filter(Boolean),
-      requestedWorkout,
+      requestedWorkout: requestedWorkoutEnabled ? requestedWorkout : "",
       fitnessGoalEnabled,
       workoutTypeEnabled,
       equipmentEnabled,
@@ -85,7 +85,7 @@ export default function WorkoutFiltersForm({ showRequestedWorkout }: Props) {
       {renderRow("Fitness Goal", fitnessGoal, setFitnessGoal, fitnessGoalEnabled, setFitnessGoalEnabled, "e.g. Cut")}
       {renderRow("Workout Type", workoutType, setWorkoutType, workoutTypeEnabled, setWorkoutTypeEnabled, "Strength")}
       {renderRow("Equipment", equipment, setEquipment, equipmentEnabled, setEquipmentEnabled, "comma separated")}
-      {renderRow("Days/Week", daysPerWeek, setDaysPerWeek, daysPerWeekEnabled, setDaysPerWeekEnabled, "3")}
+      {showDaysPerWeek && renderRow("Days/Week", daysPerWeek, setDaysPerWeek, daysPerWeekEnabled, setDaysPerWeekEnabled, "3")}
       {renderRow("Time per Workout", timePerWorkout, setTimePerWorkout, timePerWorkoutEnabled, setTimePerWorkoutEnabled, "60")}
       {renderRow("Muscle Groups", muscleGroups, setMuscleGroups, muscleGroupsEnabled, setMuscleGroupsEnabled, "comma separated")}
       {renderRow("Excluded Exercises", excludedExercises, setExcludedExercises, excludedExercisesEnabled, setExcludedExercisesEnabled, "comma separated")}

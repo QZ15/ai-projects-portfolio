@@ -7,34 +7,34 @@ import {
   SafeAreaView,
   ActivityIndicator,
   LayoutAnimation,
+  Image,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { generateWorkoutPlan, generateSingleWorkout, generateRequestedWorkout } from "../services/workoutService";
 import { useWorkoutFilters } from "../context/WorkoutFilterContext";
 import { useWorkoutFavorites } from "../context/WorkoutFavoritesContext";
-import { useTodayWorkouts } from "../context/TodayWorkoutsContext";
+import { useWeekWorkouts } from "../context/WeekWorkoutsContext";
 import { useRecentWorkouts } from "../context/RecentWorkoutsContext";
 
 export default function WorkoutPlannerScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { filters } = useWorkoutFilters();
   const { favorites, toggleFavorite, isFavorite } = useWorkoutFavorites();
-  const { todayWorkouts, addToToday, removeFromToday } = useTodayWorkouts();
+  const { weekWorkouts, addToWeek, removeFromWeek } = useWeekWorkouts();
   const { recentWorkouts, addRecentWorkout } = useRecentWorkouts();
   const [loading, setLoading] = useState<string | null>(null);
   const [planWorkouts, setPlanWorkouts] = useState<any[]>([]);
-  const [singleWorkout, setSingleWorkout] = useState<any | null>(null);
-  const [requestedWorkout, setRequestedWorkout] = useState<any | null>(null);
   const [showAIPlan, setShowAIPlan] = useState(true);
-  const [showToday, setShowToday] = useState(true);
+  const [showWeek, setShowWeek] = useState(true);
   const [showFavorites, setShowFavorites] = useState(true);
   const [showRecent, setShowRecent] = useState(true);
   const [showAITools, setShowAITools] = useState(true);
   const [showWorkoutOfDay, setShowWorkoutOfDay] = useState(true);
 
   const renderWorkoutRow = (workout: any) => {
-    const inToday = todayWorkouts.some((w) => w.name === workout.name);
+    const inWeek = weekWorkouts.some((w) => w.name === workout.name);
     return (
       <TouchableOpacity
         key={workout.name}
@@ -55,11 +55,11 @@ export default function WorkoutPlannerScreen() {
             style={{ marginRight: 10 }}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => (inToday ? removeFromToday(workout) : addToToday(workout))}>
+        <TouchableOpacity onPress={() => (inWeek ? removeFromWeek(workout) : addToWeek(workout))}>
           <Ionicons
-            name={inToday ? "remove-circle-outline" : "add-circle-outline"}
+            name={inWeek ? "remove-circle-outline" : "add-circle-outline"}
             size={22}
-            color={inToday ? "white" : "#FFFFFF"}
+            color={inWeek ? "white" : "#FFFFFF"}
           />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -69,10 +69,10 @@ export default function WorkoutPlannerScreen() {
   const handleAIPlan = async () => {
     try {
       setLoading("plan");
-      const plan = await generateWorkoutPlan(filters);
+      const { requestedWorkout, requestedWorkoutEnabled, ...cleanFilters } = filters as any;
+      const plan = await generateWorkoutPlan(cleanFilters);
       if (Array.isArray(plan)) {
         setPlanWorkouts(plan);
-        plan.forEach(addRecentWorkout);
       }
     } catch (e) {
       console.error(e);
@@ -84,9 +84,12 @@ export default function WorkoutPlannerScreen() {
   const handleSingleWorkout = async () => {
     try {
       setLoading("single");
-      const w = await generateSingleWorkout(filters);
-      setSingleWorkout(w);
-      if (w) addRecentWorkout(w);
+      const { requestedWorkout, requestedWorkoutEnabled, ...cleanFilters } = filters as any;
+      const w = await generateSingleWorkout(cleanFilters);
+      if (w) {
+        addRecentWorkout(w);
+        navigation.navigate("WorkoutDetails", { workout: w });
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -97,9 +100,15 @@ export default function WorkoutPlannerScreen() {
   const handleRequestedWorkout = async () => {
     try {
       setLoading("requested");
+      if (!filters.requestedWorkoutEnabled || !filters.requestedWorkout) {
+        Alert.alert("No Workout Entered", "Please enter a workout name in settings.");
+        return;
+      }
       const w = await generateRequestedWorkout(filters);
-      setRequestedWorkout(w);
-      if (w) addRecentWorkout(w);
+      if (w) {
+        addRecentWorkout(w);
+        navigation.navigate("WorkoutDetails", { workout: w });
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -107,86 +116,113 @@ export default function WorkoutPlannerScreen() {
     }
   };
 
-  const workoutOfTheDay = requestedWorkout || singleWorkout || planWorkouts[0];
+  const workoutImage = (w: any) =>
+    `https://source.unsplash.com/400x300/?workout,${encodeURIComponent(w?.workoutType || "")}`;
+
+  const workoutOfTheDay = weekWorkouts[0];
 
   return (
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }}>
         <View className="flex-row justify-between items-center mt-3 mb-6">
           <Text className="text-white text-[28px] font-bold">Workout Planner</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("WorkoutPlanFilters")}> 
-            <Ionicons name="settings-outline" size={22} color="#9CA3AF" />
+          <TouchableOpacity
+            onPress={() => {
+              LayoutAnimation.easeInEaseOut();
+              setShowAITools(!showAITools);
+            }}
+          >
+            <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
 
-        {/* AI Tools */}
-        <TouchableOpacity
-          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowAITools(!showAITools); }}
-          className="flex-row justify-between items-center"
-        >
-          <Text className="text-white text-lg font-semibold mb-3">AI Tools</Text>
-          <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
-        </TouchableOpacity>
         {showAITools && (
           <View className="mb-6">
+            {/* AI Workout Plan */}
             <TouchableOpacity
               className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
               onPress={handleAIPlan}
+              disabled={!!loading}
             >
-              <View className="flex-row items-center">
+              <View className="flex-row items-center flex-1">
                 <Ionicons name="barbell-outline" size={20} color="#fff" />
                 <View className="ml-3">
-                  <Text className="text-white text-base font-semibold">AI Workout Plan</Text>
-                  <Text className="text-gray-400 text-xs mt-0.5">Generate a workout plan with AI</Text>
+                  <Text className="text-white text-base font-semibold">
+                    {loading === "plan" ? "Generating..." : "AI Workout Plan"}
+                  </Text>
+                  <Text className="text-gray-400 text-xs mt-0.5">Generate a multi-day plan</Text>
                 </View>
               </View>
-              {loading === "plan" ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-              )}
+              <View style={{ width: 1, height: "100%", backgroundColor: "#3F3F46", marginHorizontal: 20 }} />
+              <View className="flex-row items-center">
+                <TouchableOpacity onPress={() => navigation.navigate("WorkoutPlanFilters")}>
+                  <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
+                </TouchableOpacity>
+                {loading === "plan" ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+                )}
+              </View>
             </TouchableOpacity>
 
+            {/* Single Workout */}
             <TouchableOpacity
               className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
               onPress={handleSingleWorkout}
+              disabled={!!loading}
             >
-              <View className="flex-row items-center">
+              <View className="flex-row items-center flex-1">
                 <Ionicons name="flash-outline" size={20} color="#fff" />
                 <View className="ml-3">
-                  <Text className="text-white text-base font-semibold">Single Workout</Text>
+                  <Text className="text-white text-base font-semibold">
+                    {loading === "single" ? "Generating..." : "Single Workout"}
+                  </Text>
                   <Text className="text-gray-400 text-xs mt-0.5">Generate a workout for today</Text>
                 </View>
               </View>
-              {loading === "single" ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-              )}
+              <View style={{ width: 1, height: "100%", backgroundColor: "#3F3F46", marginHorizontal: 20 }} />
+              <View className="flex-row items-center">
+                <TouchableOpacity onPress={() => navigation.navigate("SingleWorkoutFilters")}>
+                  <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
+                </TouchableOpacity>
+                {loading === "single" ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+                )}
+              </View>
             </TouchableOpacity>
 
-            <View className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center">
+            {/* Request Workout */}
+            <TouchableOpacity
+              className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center"
+              onPress={handleRequestedWorkout}
+              disabled={!!loading}
+            >
               <View className="flex-row items-center flex-1">
                 <Ionicons name="create-outline" size={20} color="#fff" />
                 <View className="ml-3">
-                  <Text className="text-white text-base font-semibold">Request Workout</Text>
-                  <Text className="text-gray-400 text-xs mt-0.5">Generate by name</Text>
+                  <Text className="text-white text-base font-semibold">
+                    {loading === "requested" ? "Generating..." : "Request Workout"}
+                  </Text>
+                  <Text className="text-gray-400 text-xs mt-0.5">
+                    {filters.requestedWorkout || "Enter a workout in settings"}
+                  </Text>
                 </View>
               </View>
+              <View style={{ width: 1, height: "100%", backgroundColor: "#3F3F46", marginHorizontal: 20 }} />
               <View className="flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.navigate("RequestWorkout")}
-                  style={{ marginRight: 12 }}>
-                  <Ionicons name="settings-outline" size={20} color="#6B7280" />
+                <TouchableOpacity onPress={() => navigation.navigate("RequestWorkout")}>
+                  <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleRequestedWorkout}>
-                  {loading === "requested" ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-                  )}
-                </TouchableOpacity>
+                {loading === "requested" ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+                )}
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -194,13 +230,33 @@ export default function WorkoutPlannerScreen() {
         {workoutOfTheDay && (
           <>
             <TouchableOpacity
-              onPress={() => { LayoutAnimation.easeInEaseOut(); setShowWorkoutOfDay(!showWorkoutOfDay); }}
+              onPress={() => {
+                LayoutAnimation.easeInEaseOut();
+                setShowWorkoutOfDay(!showWorkoutOfDay);
+              }}
               className="flex-row justify-between items-center"
             >
               <Text className="text-white text-lg font-semibold mb-3">Workout of the Day</Text>
               <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
             </TouchableOpacity>
-            {showWorkoutOfDay && renderWorkoutRow(workoutOfTheDay)}
+            {showWorkoutOfDay && (
+              <TouchableOpacity
+                className="bg-neutral-900 rounded-2xl overflow-hidden mb-3"
+                onPress={() => navigation.navigate("WorkoutDetails", { workout: workoutOfTheDay })}
+              >
+                <Image
+                  source={{ uri: workoutImage(workoutOfTheDay) }}
+                  className="w-full h-40"
+                  resizeMode="cover"
+                />
+                <View className="p-4">
+                  <Text className="text-white text-lg font-semibold">{workoutOfTheDay.name}</Text>
+                  <Text className="text-gray-400 text-sm mt-1">
+                    {workoutOfTheDay.workoutType} • {workoutOfTheDay.duration ?? 0} min
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </>
         )}
 
@@ -220,7 +276,10 @@ export default function WorkoutPlannerScreen() {
         {planWorkouts.length > 0 && (
           <>
             <TouchableOpacity
-              onPress={() => { LayoutAnimation.easeInEaseOut(); setShowAIPlan(!showAIPlan); }}
+              onPress={() => {
+                LayoutAnimation.easeInEaseOut();
+                setShowAIPlan(!showAIPlan);
+              }}
               className="flex-row justify-between items-center"
             >
               <Text className="text-white text-lg font-semibold mt-6 mb-3">AI Workout Plan</Text>
@@ -230,17 +289,20 @@ export default function WorkoutPlannerScreen() {
           </>
         )}
 
-        {/* Today Workouts */}
+        {/* This Week's Workouts */}
         <TouchableOpacity
-          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowToday(!showToday); }}
+          onPress={() => {
+            LayoutAnimation.easeInEaseOut();
+            setShowWeek(!showWeek);
+          }}
           className="flex-row justify-between items-center"
         >
           <Text className="text-white text-lg font-semibold mt-6 mb-3">
-            Today's Workouts ({todayWorkouts.length})
+            This Weeks Workouts ({weekWorkouts.length})
           </Text>
           <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
         </TouchableOpacity>
-        {showToday && todayWorkouts.map(renderWorkoutRow)}
+        {showWeek && weekWorkouts.map(renderWorkoutRow)}
 
         {/* Favorites */}
         <TouchableOpacity
