@@ -36,6 +36,7 @@ export default function Scheduler() {
   });
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day")),
@@ -131,10 +132,22 @@ export default function Scheduler() {
   }, [schedules]);
 
   useEffect(() => {
-    if (!schedules[dayKey]) {
-      setSchedules((prev) => ({ ...prev, [dayKey]: buildDefault() }));
-    }
-  }, [dayKey, todayMeals, weekWorkouts]);
+    const auto = buildDefault();
+    setSchedules((prev) => {
+      const existing = prev[dayKey] || [];
+      const events = existing.filter((it: any) => it.type === "event");
+      const merged = auto.map((it) => {
+        const found = existing.find((e: any) => e.id === it.id);
+        return found ? { ...it, time: found.time } : it;
+      });
+      return {
+        ...prev,
+        [dayKey]: [...merged, ...events].sort(
+          (a, b) => a.time.valueOf() - b.time.valueOf()
+        ),
+      };
+    });
+  }, [dayKey, todayMeals, weekWorkouts, prefs]);
 
   const items = schedules[dayKey] || [];
 
@@ -156,23 +169,22 @@ export default function Scheduler() {
 
   const getResponder = (id: string) =>
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        setDraggingId(id);
-        setDragOffset(0);
-      },
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: () => draggingId === id,
       onPanResponderMove: (_, g) => {
         setDragOffset(g.dy);
       },
       onPanResponderRelease: (_, g) => {
         const original = items.find((i) => i.id === id);
         if (original) {
-          const minutes = minutesToTop(original.time) + (g.dy / HOUR_HEIGHT) * 60;
+          const minutes =
+            minutesToTop(original.time) + (g.dy / HOUR_HEIGHT) * 60;
           const newTime = day.startOf("day").add(minutes, "minute");
           updateItem({ ...original, time: newTime });
         }
         setDraggingId(null);
         setDragOffset(0);
+        setScrollEnabled(true);
       },
     });
 
@@ -288,6 +300,7 @@ export default function Scheduler() {
           className="flex-1"
           contentContainerStyle={{ height: HOUR_HEIGHT * 24 }}
           showsVerticalScrollIndicator={false}
+          scrollEnabled={scrollEnabled}
         >
           <LongPressGestureHandler minDurationMs={800} onActivated={handleLongPress}>
             <View style={{ flex: 1, position: "relative" }}>
@@ -319,10 +332,17 @@ export default function Scheduler() {
                   <View
                     key={item.id}
                     {...responder.panHandlers}
-                    className="absolute bg-neutral-900 rounded-xl p-3"
+                    className="absolute bg-neutral-900 rounded-xl"
                     style={{ top, left: 56, right: 0 }}
                   >
                     <TouchableOpacity
+                      activeOpacity={0.9}
+                      delayLongPress={500}
+                      onLongPress={() => {
+                        setDraggingId(item.id);
+                        setDragOffset(0);
+                        setScrollEnabled(false);
+                      }}
                       onPress={() =>
                         navigation.navigate("ScheduleDetails", {
                           item,
@@ -332,6 +352,7 @@ export default function Scheduler() {
                           isNew: false,
                         })
                       }
+                      className="p-3"
                     >
                       <Text className="text-white font-semibold">{item.title}</Text>
                     </TouchableOpacity>

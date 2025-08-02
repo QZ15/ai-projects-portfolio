@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import dayjs from "dayjs";
 
@@ -26,8 +27,8 @@ export default function ScheduleSettings({ navigation }) {
     })();
   }, []);
 
-  const onChange = (event: DateTimePickerEvent, date?: Date) => {
-    if (event.type !== "set" || !date || !pickerKey) return setPickerKey(null);
+  const handleConfirm = (date: Date) => {
+    if (!pickerKey) return;
     const time = dayjs(date).format("HH:mm");
     if (pickerKey === "workout") {
       setPrefs((p) => ({ ...p, workoutTime: time }));
@@ -46,42 +47,55 @@ export default function ScheduleSettings({ navigation }) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black p-5">
-      <Text className="text-white text-2xl font-bold mb-5">Schedule Settings</Text>
+    <SafeAreaView className="flex-1 bg-black">
+      <View className="flex-1 px-5">
+        <View className="flex-row items-center mb-6">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="mr-2">
+            <Ionicons name="chevron-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white text-2xl font-bold">Schedule Settings</Text>
+        </View>
 
-      {mealKeys.map((m) => (
+        {mealKeys.map((m) => (
+          <TouchableOpacity
+            key={m}
+            className="flex-row justify-between items-center py-3 border-b border-neutral-800"
+            onPress={() => setPickerKey(m)}
+          >
+            <Text className="text-white">{m} Time</Text>
+            <Text className="text-gray-400">{prefs.mealTimes[m]}</Text>
+          </TouchableOpacity>
+        ))}
+
         <TouchableOpacity
-          key={m}
           className="flex-row justify-between items-center py-3 border-b border-neutral-800"
-          onPress={() => setPickerKey(m)}
+          onPress={() => setPickerKey("workout")}
         >
-          <Text className="text-white">{m} Time</Text>
-          <Text className="text-gray-400">{prefs.mealTimes[m]}</Text>
+          <Text className="text-white">Workout Time</Text>
+          <Text className="text-gray-400">{prefs.workoutTime}</Text>
         </TouchableOpacity>
-      ))}
 
-      <TouchableOpacity
-        className="flex-row justify-between items-center py-3 border-b border-neutral-800"
-        onPress={() => setPickerKey("workout")}
-      >
-        <Text className="text-white">Workout Time</Text>
-        <Text className="text-gray-400">{prefs.workoutTime}</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          className="bg-blue-600 p-4 rounded-2xl mt-8"
+          onPress={save}
+        >
+          <Text className="text-white font-semibold text-center">Save</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        className="bg-blue-500 p-4 rounded-2xl mt-8"
-        onPress={save}
-      >
-        <Text className="text-white font-semibold text-center">Save</Text>
-      </TouchableOpacity>
-
-      {pickerKey && (
-        <DateTimePicker
-          value={dayjs(pickerKey === "workout" ? prefs.workoutTime : prefs.mealTimes[pickerKey], "HH:mm").toDate()}
+        <DateTimePickerModal
+          isVisible={pickerKey !== null}
           mode="time"
-          onChange={onChange}
+          date={dayjs(
+            pickerKey === "workout"
+              ? prefs.workoutTime
+              : prefs.mealTimes[pickerKey || ""],
+            "HH:mm"
+          ).toDate()}
+          onConfirm={handleConfirm}
+          onCancel={() => setPickerKey(null)}
+          isDarkModeEnabled
         />
-      )}
+      </View>
     </SafeAreaView>
   );
 }
