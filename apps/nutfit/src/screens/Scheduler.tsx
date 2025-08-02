@@ -32,6 +32,7 @@ type ScheduleItem = {
 const EVENTS_KEY = "scheduleEvents";
 const META_KEY = "scheduleMeta";
 const ORDER_KEY = "scheduleOrder";
+const DEFAULTS_KEY = "scheduleDefaults";
 
 const formatTime = (iso?: string) => (iso ? dayjs(iso).format("h:mm A") : "Set time");
 
@@ -43,12 +44,23 @@ export default function Scheduler() {
   const [meta, setMeta] = useState<Record<string, { time?: string; reminder?: boolean; notificationId?: string }>>({});
   const [order, setOrder] = useState<string[]>([]);
   const [data, setData] = useState<ScheduleItem[]>([]);
-  const [picker, setPicker] = useState<{ id: string; date: Date } | null>(null);
+  const [timePicker, setTimePicker] =
+    useState<{
+      id: string;
+      type: "meal" | "workout" | "event";
+      date: Date;
+    } | null>(null);
+  const [tempDate, setTempDate] = useState(new Date());
+  const [setAsDefault, setSetAsDefault] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [eventTitle, setEventTitle] = useState("");
   const [eventTime, setEventTime] = useState<Date | null>(null);
   const [eventReminder, setEventReminder] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [defaults, setDefaults] = useState<{
+    meals: Record<string, string>;
+    workout?: string;
+  }>({ meals: {} });
 
   useEffect(() => {
     load();
@@ -63,9 +75,11 @@ export default function Scheduler() {
     const e = await AsyncStorage.getItem(EVENTS_KEY);
     const m = await AsyncStorage.getItem(META_KEY);
     const o = await AsyncStorage.getItem(ORDER_KEY);
+    const d = await AsyncStorage.getItem(DEFAULTS_KEY);
     if (e) setCustomEvents(JSON.parse(e));
     if (m) setMeta(JSON.parse(m));
     if (o) setOrder(JSON.parse(o));
+    if (d) setDefaults(JSON.parse(d));
   };
 
   const saveEvents = (evts: ScheduleItem[]) => {
@@ -83,11 +97,23 @@ export default function Scheduler() {
     AsyncStorage.setItem(ORDER_KEY, JSON.stringify(o));
   };
 
+  const saveDefaults = (d: typeof defaults) => {
+    setDefaults(d);
+    AsyncStorage.setItem(DEFAULTS_KEY, JSON.stringify(d));
+  };
+
   const buildData = () => {
     let items: ScheduleItem[] = [];
 
+    let updatedMeta: typeof meta | null = null;
     todayMeals.forEach((meal: any) => {
       const id = `meal-${meal.name}`;
+      if (!meta[id]?.time && defaults.meals[meal.mealType]) {
+        updatedMeta = {
+          ...(updatedMeta || meta),
+          [id]: { ...meta[id], time: defaults.meals[meal.mealType] },
+        };
+      }
       items.push({
         id,
         type: "meal",
@@ -99,6 +125,12 @@ export default function Scheduler() {
 
     weekWorkouts.slice(0, 1).forEach((w: any, idx: number) => {
       const id = `workout-${w.name}-${idx}`;
+      if (!meta[id]?.time && defaults.workout) {
+        updatedMeta = {
+          ...(updatedMeta || meta),
+          [id]: { ...meta[id], time: defaults.workout },
+        };
+      }
       items.push({
         id,
         type: "workout",
@@ -132,6 +164,9 @@ export default function Scheduler() {
       });
     }
 
+    if (updatedMeta) {
+      saveMeta(updatedMeta);
+    }
     setData(items);
   };
 
@@ -140,21 +175,50 @@ export default function Scheduler() {
     saveOrder(data.map((i) => i.id));
   };
 
-  const handleTimePick = (id: string) => {
-    const d = meta[id]?.time ? dayjs(meta[id].time).toDate() : new Date();
-    setPicker({ id, date: d });
+  const handleTimePick = (item: ScheduleItem) => {
+    const d = meta[item.id]?.time
+      ? dayjs(meta[item.id].time).toDate()
+      : new Date();
+    setTempDate(d);
+    setSetAsDefault(false);
+    setTimePicker({ id: item.id, type: item.type, date: d });
   };
 
-  const onTimeChange = (_: any, selected?: Date) => {
-    if (!picker) return;
-    const date = selected || picker.date;
-    if (picker.id === "new") {
+  const savePickedTime = async () => {
+    if (!timePicker) return;
+    const date = tempDate;
+    if (timePicker.id === "new") {
       setEventTime(date);
-    } else {
-      const info = { ...meta[picker.id], time: date.toISOString() };
-      saveMeta({ ...meta, [picker.id]: info });
+      setTimePicker(null);
+      return;
     }
-    setPicker(null);
+    const info = { ...meta[timePicker.id], time: date.toISOString() };
+    if (info.reminder && info.notificationId) {
+      await Notifications.cancelScheduledNotificationAsync(info.notificationId);
+      const notificationId = await Notifications.scheduleNotificationAsync({
+        content: { title: data.find((d) => d.id === timePicker.id)?.title || "" },
+        trigger: { type: "date", date },
+      });
+      info.notificationId = notificationId;
+    }
+    const newMeta = { ...meta, [timePicker.id]: info };
+    saveMeta(newMeta);
+
+    if (setAsDefault) {
+      if (timePicker.type === "meal") {
+        const mealType = data.find((d) => d.id === timePicker.id)?.detail;
+        if (mealType) {
+          saveDefaults({
+            ...defaults,
+            meals: { ...defaults.meals, [mealType]: date.toISOString() },
+          });
+        }
+      } else if (timePicker.type === "workout") {
+        saveDefaults({ ...defaults, workout: date.toISOString() });
+      }
+    }
+
+    setTimePicker(null);
   };
 
   const toggleReminder = async (item: ScheduleItem) => {
@@ -166,13 +230,13 @@ export default function Scheduler() {
       saveMeta({ ...meta, [item.id]: { ...info, reminder: false, notificationId: undefined } });
     } else {
       if (!info.time) {
-        handleTimePick(item.id);
+        handleTimePick(item);
         return;
       }
-      const trigger = dayjs(info.time).toDate();
+      const triggerDate = dayjs(info.time).toDate();
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: { title: item.title },
-        trigger,
+        trigger: { type: "date", date: triggerDate },
       });
       saveMeta({
         ...meta,
@@ -229,7 +293,7 @@ export default function Scheduler() {
     if (eventReminder && eventTime) {
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: { title: eventTitle },
-        trigger: eventTime,
+        trigger: { type: "date", date: eventTime },
       });
       m[id].notificationId = notificationId;
     }
@@ -265,12 +329,12 @@ export default function Scheduler() {
     >
       <TouchableOpacity
         onPress={() =>
-          item.type === "event" ? openAddModal(item) : handleTimePick(item.id)
+          item.type === "event" ? openAddModal(item) : handleTimePick(item)
         }
         onLongPress={drag}
-        className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
+        className="bg-neutral-900 p-4 rounded-2xl flex-row items-center mb-3"
       >
-        <View>
+        <View className="flex-1">
           <Text className="text-white font-medium">{item.title}</Text>
           {item.detail && (
             <Text className="text-gray-400 text-xs mt-0.5">{item.detail}</Text>
@@ -279,7 +343,10 @@ export default function Scheduler() {
             {formatTime(meta[item.id]?.time)}
           </Text>
         </View>
-        <TouchableOpacity onPress={() => toggleReminder(item)}>
+        <TouchableOpacity
+          className="ml-3"
+          onPress={() => toggleReminder(item)}
+        >
           <Ionicons
             name={meta[item.id]?.reminder ? "notifications" : "notifications-outline"}
             size={20}
@@ -306,20 +373,43 @@ export default function Scheduler() {
         />
 
         <TouchableOpacity
-          className="absolute bottom-5 right-5 bg-blue-600 p-4 rounded-full"
+          className="absolute bottom-5 right-5 bg-emerald-600 p-4 rounded-full"
           onPress={() => openAddModal()}
         >
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      {picker && (
-        <DateTimePicker
-          value={picker.date}
-          mode="time"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={onTimeChange}
-        />
+      {timePicker && (
+        <Modal transparent animationType="fade">
+          <View className="flex-1 justify-center bg-black/60 px-5">
+            <View className="bg-neutral-900 p-5 rounded-2xl">
+              <DateTimePicker
+                value={tempDate}
+                mode="time"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={(_, d) => d && setTempDate(d)}
+              />
+              {timePicker.type !== "event" && (
+                <View className="flex-row items-center mt-3">
+                  <Switch value={setAsDefault} onValueChange={setSetAsDefault} />
+                  <Text className="text-white ml-2">Set as default</Text>
+                </View>
+              )}
+              <View className="flex-row justify-end mt-3">
+                <TouchableOpacity
+                  className="mr-4"
+                  onPress={() => setTimePicker(null)}
+                >
+                  <Text className="text-gray-400">Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={savePickedTime}>
+                  <Text className="text-blue-500">Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
 
       <Modal visible={showEventModal} transparent animationType="slide">
@@ -339,7 +429,8 @@ export default function Scheduler() {
               className="bg-neutral-800 p-3 rounded-lg mb-3"
               onPress={() => {
                 const d = eventTime || new Date();
-                setPicker({ id: "new", date: d });
+                setTempDate(d);
+                setTimePicker({ id: "new", type: "event", date: d });
               }}
             >
               <Text className="text-white">
