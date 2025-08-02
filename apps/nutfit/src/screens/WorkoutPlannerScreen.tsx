@@ -45,13 +45,19 @@ export default function WorkoutPlannerScreen() {
     Default: "https://placehold.co/600x400?text=Workout",
   };
 
-  const withFallbackImage = (w: any) => ({
-    ...w,
-    image: w.image || fallbackImages[w.workoutType] || fallbackImages.Default,
-  });
+  const withFallbackImage = (w: any) => {
+    const key = w.primaryMuscleGroup || w.workoutType;
+    return {
+      ...w,
+      primaryMuscleGroup: key,
+      image: w.image || fallbackImages[key] || fallbackImages.Default,
+    };
+  };
 
   const workoutImage = (w: any) =>
-    w?.image || fallbackImages[w?.workoutType] || fallbackImages.Default;
+    w?.image ||
+    fallbackImages[w?.primaryMuscleGroup || w?.workoutType] ||
+    fallbackImages.Default;
 
   const renderWorkoutRow = (workout: any) => {
     const normalized = withFallbackImage(workout);
@@ -124,9 +130,13 @@ export default function WorkoutPlannerScreen() {
   const handleAIPlan = async () => {
     try {
       setLoading("plan");
-      const plan = await generateWorkoutPlan(buildActiveFilters());
+      const active = buildActiveFilters();
+      const plan = await generateWorkoutPlan(active);
       if (Array.isArray(plan)) {
-        setPlanWorkouts(plan.map(withFallbackImage));
+        const primary = active.muscleGroups?.[0];
+        setPlanWorkouts(
+          plan.map((w: any) => withFallbackImage({ ...w, primaryMuscleGroup: w.primaryMuscleGroup || primary }))
+        );
       }
     } catch (e) {
       console.error(e);
@@ -138,9 +148,11 @@ export default function WorkoutPlannerScreen() {
   const handleSingleWorkout = async () => {
     try {
       setLoading("single");
-      const w = await generateSingleWorkout(buildActiveFilters());
+      const active = buildActiveFilters();
+      const w = await generateSingleWorkout(active);
       if (w) {
-        const normalized = withFallbackImage(w);
+        const primary = active.muscleGroups?.[0];
+        const normalized = withFallbackImage({ ...w, primaryMuscleGroup: w.primaryMuscleGroup || primary });
         addRecentWorkout(normalized);
         navigation.navigate("WorkoutDetails", { workout: normalized });
       }

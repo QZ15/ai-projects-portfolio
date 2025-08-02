@@ -14,7 +14,7 @@ function safeParse(content: string) {
 
 export const generateSingleWorkout = functions.https.onCall(async (data) => {
   const filters = data.filters || {};
-  const prompt = `You are a professional fitness coach. Create one workout in JSON format with fields: workoutType, name, duration (minutes), equipment (array), exercises (array of {name, sets, reps, rest, notes}). Consider these filters: ${JSON.stringify(filters)}. Respond with valid JSON.`;
+  const prompt = `You are a professional fitness coach. Create one workout in JSON format with fields: workoutType, primaryMuscleGroup (one of [Push, Pull, Legs, Arms, Core, Full Body]), name, duration (minutes), equipment (array), exercises (array of {name, sets, reps, rest, notes}). Consider these filters: ${JSON.stringify(filters)}. Respond with valid JSON.`;
   try {
     const res = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -32,7 +32,7 @@ export const generateSingleWorkout = functions.https.onCall(async (data) => {
 export const generateWorkoutPlan = functions.https.onCall(async (data) => {
   const filters = data.filters || {};
   const days = filters.daysPerWeek || 3;
-  const prompt = `You are a professional fitness coach. Create a ${days}-day workout plan as JSON array. Each item must have: workoutType, name, duration, equipment (array), exercises: [{name, sets, reps, rest, notes}]. Use these filters: ${JSON.stringify(filters)}. Respond with valid JSON array.`;
+  const prompt = `You are a professional fitness coach. Create a ${days}-day workout plan as JSON array. Each item must have: workoutType, primaryMuscleGroup (one of [Push, Pull, Legs, Arms, Core, Full Body]), name, duration, equipment (array), exercises: [{name, sets, reps, rest, notes}]. Use these filters: ${JSON.stringify(filters)}. Respond with valid JSON array.`;
   try {
     const res = await openai.chat.completions.create({
       model: "gpt-4o-mini",

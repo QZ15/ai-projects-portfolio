@@ -26,13 +26,13 @@ export default function WorkoutDetailsScreen() {
     Default: "https://placehold.co/600x400?text=Workout",
   };
 
+  const key = workout?.primaryMuscleGroup || workout?.workoutType;
   const workoutImage =
-    workout?.image ||
-    fallbackImages[workout?.workoutType as keyof typeof fallbackImages] ||
-    fallbackImages.Default;
+    workout?.image || fallbackImages[key as keyof typeof fallbackImages] || fallbackImages.Default;
 
   const normalizedWorkout = {
     ...workout,
+    primaryMuscleGroup: key,
     image: workoutImage,
   };
 
