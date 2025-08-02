@@ -15,8 +15,28 @@ export default function WorkoutDetailsScreen() {
   const { addCompletedWorkout } = useCompletedWorkouts();
 
   const title = workout?.name || "Workout";
-  const inWeek = weekWorkouts.some((w) => w.name === workout?.name);
-  const workoutImage = workout?.image || "https://placehold.co/600x400?text=Workout";
+
+  const fallbackImages: Record<string, string> = {
+    Push: "https://placehold.co/600x400?text=Push",
+    Pull: "https://placehold.co/600x400?text=Pull",
+    Legs: "https://placehold.co/600x400?text=Legs",
+    Arms: "https://placehold.co/600x400?text=Arms",
+    Core: "https://placehold.co/600x400?text=Core",
+    "Full Body": "https://placehold.co/600x400?text=Full%20Body",
+    Default: "https://placehold.co/600x400?text=Workout",
+  };
+
+  const workoutImage =
+    workout?.image ||
+    fallbackImages[workout?.workoutType as keyof typeof fallbackImages] ||
+    fallbackImages.Default;
+
+  const normalizedWorkout = {
+    ...workout,
+    image: workoutImage,
+  };
+
+  const inWeek = weekWorkouts.some((w) => w.name === normalizedWorkout.name);
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -31,25 +51,31 @@ export default function WorkoutDetailsScreen() {
         {/* Name + Buttons */}
         <View className="flex-row mb-6">
           <View className="bg-neutral-900 p-4 rounded-2xl flex-1 mr-3">
-            {workout?.workoutType && (
-              <Text className="text-blue-400 text-xs mb-1">{workout.workoutType}</Text>
+            {normalizedWorkout?.workoutType && (
+              <Text className="text-blue-400 text-xs mb-1">
+                {normalizedWorkout.workoutType}
+              </Text>
             )}
             <Text className="text-white text-[24px] font-bold mb-1">{title}</Text>
-            {workout?.duration && (
-              <Text className="text-gray-400 text-sm">{workout.duration} min</Text>
+            {normalizedWorkout?.duration && (
+              <Text className="text-gray-400 text-sm">
+                {normalizedWorkout.duration} min
+              </Text>
             )}
           </View>
 
           <View className="justify-between bg-neutral-900 rounded-2xl p-2">
-            <TouchableOpacity onPress={() => toggleFavorite(workout)}>
+            <TouchableOpacity onPress={() => toggleFavorite(normalizedWorkout)}>
               <Ionicons
-                name={isFavorite(workout) ? "heart" : "heart-outline"}
+                name={isFavorite(normalizedWorkout) ? "heart" : "heart-outline"}
                 size={28}
-                color={isFavorite(workout) ? "white" : "white"}
+                color={isFavorite(normalizedWorkout) ? "white" : "white"}
               />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => (inWeek ? removeFromWeek(workout) : addToWeek(workout))}>
+            <TouchableOpacity
+              onPress={() => (inWeek ? removeFromWeek(normalizedWorkout) : addToWeek(normalizedWorkout))}
+            >
               <Ionicons
                 name={inWeek ? "remove-circle-outline" : "add-circle-outline"}
                 size={28}
@@ -59,9 +85,9 @@ export default function WorkoutDetailsScreen() {
           </View>
         </View>
 
-        {Array.isArray(workout?.exercises) && (
+        {Array.isArray(normalizedWorkout?.exercises) && (
           <View className="bg-neutral-900 p-4 rounded-2xl mb-6">
-            {workout.exercises.map((ex: any, idx: number) => (
+            {normalizedWorkout.exercises.map((ex: any, idx: number) => (
               <View key={idx} className="mb-3">
                 <Text className="text-white font-semibold">{ex.name}</Text>
                 <Text className="text-gray-400 text-sm">
@@ -77,8 +103,8 @@ export default function WorkoutDetailsScreen() {
           <TouchableOpacity
             className="bg-blue-500 p-4 rounded-2xl items-center"
             onPress={() => {
-              addCompletedWorkout(workout);
-              removeFromWeek(workout);
+              addCompletedWorkout(normalizedWorkout);
+              removeFromWeek(normalizedWorkout);
               navigation.goBack();
             }}
           >

@@ -35,29 +35,50 @@ export default function WorkoutPlannerScreen() {
   const [showAITools, setShowAITools] = useState(true);
   const [showWorkoutOfDay, setShowWorkoutOfDay] = useState(true);
 
+  const fallbackImages: Record<string, string> = {
+    Push: "https://placehold.co/600x400?text=Push",
+    Pull: "https://placehold.co/600x400?text=Pull",
+    Legs: "https://placehold.co/600x400?text=Legs",
+    Arms: "https://placehold.co/600x400?text=Arms",
+    Core: "https://placehold.co/600x400?text=Core",
+    "Full Body": "https://placehold.co/600x400?text=Full%20Body",
+    Default: "https://placehold.co/600x400?text=Workout",
+  };
+
+  const withFallbackImage = (w: any) => ({
+    ...w,
+    image: w.image || fallbackImages[w.workoutType] || fallbackImages.Default,
+  });
+
+  const workoutImage = (w: any) =>
+    w?.image || fallbackImages[w?.workoutType] || fallbackImages.Default;
+
   const renderWorkoutRow = (workout: any) => {
-    const inWeek = weekWorkouts.some((w) => w.name === workout.name);
+    const normalized = withFallbackImage(workout);
+    const inWeek = weekWorkouts.some((w) => w.name === normalized.name);
     return (
       <TouchableOpacity
-        key={workout.name}
+        key={normalized.name}
         className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
-        onPress={() => navigation.navigate("WorkoutDetails", { workout })}
+        onPress={() => navigation.navigate("WorkoutDetails", { workout: normalized })}
       >
         <View style={{ flex: 1 }}>
-          <Text className="text-white font-medium">{workout.name}</Text>
+          <Text className="text-white font-medium">{normalized.name}</Text>
           <Text className="text-gray-400 text-xs mt-0.5">
-            {workout.workoutType} • {workout.duration ?? 0} min
+            {normalized.workoutType} • {normalized.duration ?? 0} min
           </Text>
         </View>
-        <TouchableOpacity onPress={() => toggleFavorite(workout)}>
+        <TouchableOpacity onPress={() => toggleFavorite(normalized)}>
           <Ionicons
-            name={isFavorite(workout) ? "heart" : "heart-outline"}
+            name={isFavorite(normalized) ? "heart" : "heart-outline"}
             size={20}
-            color={isFavorite(workout) ? "white" : "#FFFFFF"}
+            color={isFavorite(normalized) ? "white" : "#FFFFFF"}
             style={{ marginRight: 10 }}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => (inWeek ? removeFromWeek(workout) : addToWeek(workout))}>
+        <TouchableOpacity
+          onPress={() => (inWeek ? removeFromWeek(normalized) : addToWeek(normalized))}
+        >
           <Ionicons
             name={inWeek ? "remove-circle-outline" : "add-circle-outline"}
             size={22}
@@ -105,7 +126,7 @@ export default function WorkoutPlannerScreen() {
       setLoading("plan");
       const plan = await generateWorkoutPlan(buildActiveFilters());
       if (Array.isArray(plan)) {
-        setPlanWorkouts(plan);
+        setPlanWorkouts(plan.map(withFallbackImage));
       }
     } catch (e) {
       console.error(e);
@@ -119,8 +140,9 @@ export default function WorkoutPlannerScreen() {
       setLoading("single");
       const w = await generateSingleWorkout(buildActiveFilters());
       if (w) {
-        addRecentWorkout(w);
-        navigation.navigate("WorkoutDetails", { workout: w });
+        const normalized = withFallbackImage(w);
+        addRecentWorkout(normalized);
+        navigation.navigate("WorkoutDetails", { workout: normalized });
       }
     } catch (e) {
       console.error(e);
@@ -128,9 +150,6 @@ export default function WorkoutPlannerScreen() {
       setLoading(null);
     }
   };
-
-  const placeholderImage = "https://placehold.co/600x400?text=Workout";
-  const workoutImage = (w: any) => w?.image || placeholderImage;
 
   const workoutOfTheDay = weekWorkouts[0];
 
@@ -225,7 +244,11 @@ export default function WorkoutPlannerScreen() {
             {showWorkoutOfDay && (
               <TouchableOpacity
                 className="bg-neutral-900 rounded-2xl overflow-hidden mb-3"
-                onPress={() => navigation.navigate("WorkoutDetails", { workout: workoutOfTheDay })}
+                onPress={() =>
+                  navigation.navigate("WorkoutDetails", {
+                    workout: withFallbackImage(workoutOfTheDay),
+                  })
+                }
               >
                 <Image
                   source={{ uri: workoutImage(workoutOfTheDay) }}
