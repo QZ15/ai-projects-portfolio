@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, PanResponder } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { PanGestureHandler } from "react-native-gesture-handler";
+import { PanGestureHandler, LongPressGestureHandler } from "react-native-gesture-handler";
 import dayjs from "dayjs";
 import { useTodayMeals } from "../context/TodayMealsContext";
 import { useWeekWorkouts } from "../context/WeekWorkoutsContext";
@@ -30,6 +30,12 @@ export default function Scheduler() {
   const [day, setDay] = useState(dayjs());
   const [weekStart, setWeekStart] = useState(day.startOf("week"));
   const [schedules, setSchedules] = useState<Record<string, any[]>>({});
+  const [prefs, setPrefs] = useState<{ mealTimes: Record<string, string>; workoutTime: string }>({
+    mealTimes: defaultMealTimes,
+    workoutTime: defaultWorkoutTime,
+  });
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day")),
@@ -65,31 +71,60 @@ export default function Scheduler() {
       return "00:00";
     };
 
-    const meals = todayMeals.map((meal: any, idx: number) => {
-      const pref = defaultMealTimes[meal.mealType] || allSlots[idx] || "09:00";
-      const time = timeToDate(base, takeSlot(pref));
-      return { id: `meal-${idx}-${meal.name}`, title: meal.name, time };
-    });
+    const items: any[] = [];
 
-    const workouts = weekWorkouts.length
-      ? [
-          {
-            id: `workout-${weekWorkouts[0].name}`,
-            title: weekWorkouts[0].name,
-            time: timeToDate(base, takeSlot(defaultWorkoutTime)),
-          },
-        ]
-      : [];
+    if (day.isSame(dayjs(), "day")) {
+      todayMeals.forEach((meal: any, idx: number) => {
+        const pref = prefs.mealTimes[meal.mealType] || allSlots[idx] || "09:00";
+        const time = timeToDate(base, takeSlot(pref));
+        items.push({
+          id: `meal-${idx}-${meal.name}`,
+          title: meal.name,
+          time,
+          type: "meal",
+          refId: meal.id,
+        });
+      });
+    }
 
-    return [...meals, ...workouts].sort((a, b) => a.time.valueOf() - b.time.valueOf());
+    const diff = day.startOf("day").diff(dayjs().startOf("day"), "day");
+    if (diff >= 0 && diff < weekWorkouts.length) {
+      const w = weekWorkouts[diff];
+      items.push({
+        id: `workout-${diff}-${w.name}`,
+        title: w.name,
+        time: timeToDate(base, takeSlot(prefs.workoutTime)),
+        type: "workout",
+        refId: w.id,
+      });
+    }
+
+    return items.sort((a, b) => a.time.valueOf() - b.time.valueOf());
   };
 
   useEffect(() => {
     (async () => {
       const saved = await AsyncStorage.getItem("scheduleItems");
-      if (saved) setSchedules(JSON.parse(saved));
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.keys(parsed).forEach((k) => {
+          parsed[k] = parsed[k].map((it: any) => ({ ...it, time: dayjs(it.time) }));
+        });
+        setSchedules(parsed);
+      }
+      const prefSaved = await AsyncStorage.getItem("schedulePrefs");
+      if (prefSaved) setPrefs(JSON.parse(prefSaved));
     })();
   }, []);
+
+  useEffect(() => {
+    const loadPrefs = async () => {
+      const prefSaved = await AsyncStorage.getItem("schedulePrefs");
+      if (prefSaved) setPrefs(JSON.parse(prefSaved));
+    };
+    const unsub = navigation.addListener("focus", loadPrefs);
+    return unsub;
+  }, [navigation]);
 
   useEffect(() => {
     AsyncStorage.setItem("scheduleItems", JSON.stringify(schedules));
@@ -102,6 +137,87 @@ export default function Scheduler() {
   }, [dayKey, todayMeals, weekWorkouts]);
 
   const items = schedules[dayKey] || [];
+
+  const updateItem = (updated: any) => {
+    setSchedules((prev) => ({
+      ...prev,
+      [dayKey]: prev[dayKey]
+        .map((it) => (it.id === updated.id ? updated : it))
+        .sort((a, b) => a.time.valueOf() - b.time.valueOf()),
+    }));
+  };
+
+  const deleteItem = (id: string) => {
+    setSchedules((prev) => ({
+      ...prev,
+      [dayKey]: prev[dayKey].filter((it) => it.id !== id),
+    }));
+  };
+
+  const getResponder = (id: string) =>
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        setDraggingId(id);
+        setDragOffset(0);
+      },
+      onPanResponderMove: (_, g) => {
+        setDragOffset(g.dy);
+      },
+      onPanResponderRelease: (_, g) => {
+        const original = items.find((i) => i.id === id);
+        if (original) {
+          const minutes = minutesToTop(original.time) + (g.dy / HOUR_HEIGHT) * 60;
+          const newTime = day.startOf("day").add(minutes, "minute");
+          updateItem({ ...original, time: newTime });
+        }
+        setDraggingId(null);
+        setDragOffset(0);
+      },
+    });
+
+  const handleAdd = () => {
+    const base = day.clone().startOf("day");
+    const newItem = {
+      id: `event-${Date.now()}`,
+      title: "New Event",
+      time: base.add(12, "hour"),
+      type: "event",
+    };
+    setSchedules((prev) => ({
+      ...prev,
+      [dayKey]: [...items, newItem].sort((a, b) => a.time.valueOf() - b.time.valueOf()),
+    }));
+    navigation.navigate("ScheduleDetails", {
+      item: newItem,
+      onUpdate: updateItem,
+      onDelete: deleteItem,
+      onCancelNew: deleteItem,
+      isNew: true,
+    });
+  };
+
+  const handleLongPress = (e: any) => {
+    const y = e.nativeEvent.y;
+    const minutes = (y / HOUR_HEIGHT) * 60;
+    const newItem = {
+      id: `event-${Date.now()}`,
+      title: "New Event",
+      time: day.startOf("day").add(minutes, "minute"),
+      type: "event",
+    };
+    setSchedules((prev) => ({
+      ...prev,
+      [dayKey]: [...items, newItem].sort((a, b) => a.time.valueOf() - b.time.valueOf()),
+    }));
+    navigation.navigate("ScheduleDetails", {
+      item: newItem,
+      onUpdate: updateItem,
+      onDelete: deleteItem,
+      onCancelNew: deleteItem,
+      isNew: true,
+    });
+  };
 
   const minutesToTop = (date: dayjs.Dayjs) =>
     date.diff(day.startOf("day"), "minute") * (HOUR_HEIGHT / 60);
@@ -123,11 +239,11 @@ export default function Scheduler() {
         <View className="flex-row justify-between items-center mt-3 mb-6">
           <Text className="text-white text-[28px] font-bold">Schedule</Text>
           <View className="flex-row gap-4">
-            <TouchableOpacity onPress={() => navigation.navigate("Settings") }>
-              <Ionicons name="settings-outline" size={22} color="#9CA3AF" />
-            </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleAdd}>
               <Ionicons name="add" size={22} color="#9CA3AF" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("ScheduleSettings") }>
+              <Ionicons name="settings-outline" size={22} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -173,41 +289,57 @@ export default function Scheduler() {
           contentContainerStyle={{ height: HOUR_HEIGHT * 24 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={{ flex: 1, position: "relative" }}>
-            {Array.from({ length: 24 }).map((_, hour) => (
-              <View
-                key={hour}
-                style={{
-                  position: "absolute",
-                  top: hour * HOUR_HEIGHT,
-                  left: 0,
-                  right: 0,
-                  height: HOUR_HEIGHT,
-                }}
-              >
-                <View className="flex-row h-full">
-                  <Text className="w-12 pr-2 text-right text-gray-500">
-                    {dayjs().hour(hour).format("h A")}
-                  </Text>
-                  <View className="flex-1 border-t border-neutral-800" />
+          <LongPressGestureHandler minDurationMs={800} onActivated={handleLongPress}>
+            <View style={{ flex: 1, position: "relative" }}>
+              {Array.from({ length: 24 }).map((_, hour) => (
+                <View
+                  key={hour}
+                  style={{
+                    position: "absolute",
+                    top: hour * HOUR_HEIGHT,
+                    left: 0,
+                    right: 0,
+                    height: HOUR_HEIGHT,
+                  }}
+                >
+                  <View className="flex-row h-full">
+                    <Text className="w-12 pr-2 text-right text-gray-500">
+                      {dayjs().hour(hour).format("h A")}
+                    </Text>
+                    <View className="flex-1 border-t border-neutral-800" />
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
 
-            {items.map((item) => (
-              <View
-                key={item.id}
-                className="absolute bg-neutral-900 rounded-xl p-3"
-                style={{
-                  top: minutesToTop(item.time),
-                  left: 56,
-                  right: 0,
-                }}
-              >
-                <Text className="text-white font-semibold">{item.title}</Text>
-              </View>
-            ))}
-          </View>
+              {items.map((item) => {
+                const isDragging = draggingId === item.id;
+                const top = minutesToTop(item.time) + (isDragging ? dragOffset : 0);
+                const responder = getResponder(item.id);
+                return (
+                  <View
+                    key={item.id}
+                    {...responder.panHandlers}
+                    className="absolute bg-neutral-900 rounded-xl p-3"
+                    style={{ top, left: 56, right: 0 }}
+                  >
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate("ScheduleDetails", {
+                          item,
+                          onUpdate: updateItem,
+                          onDelete: deleteItem,
+                          onCancelNew: deleteItem,
+                          isNew: false,
+                        })
+                      }
+                    >
+                      <Text className="text-white font-semibold">{item.title}</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </View>
+          </LongPressGestureHandler>
         </ScrollView>
       </View>
     </SafeAreaView>
