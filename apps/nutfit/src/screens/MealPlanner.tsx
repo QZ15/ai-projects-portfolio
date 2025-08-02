@@ -334,20 +334,6 @@ export default function MealPlanner() {
                 <Ionicons name="chevron-forward" size={18} color="#6B7280" />
               </TouchableOpacity>
 
-              {/* Schedule */}
-              <TouchableOpacity
-                className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mt-3"
-                onPress={() => navigation.getParent()?.navigate("Schedule")}
-              >
-                <View className="flex-row items-center flex-1">
-                  <Ionicons name="calendar-outline" size={20} color="#fff" />
-                  <View className="ml-3">
-                    <Text className="text-white text-base font-semibold">Schedule</Text>
-                    <Text className="text-gray-400 text-xs mt-0.5">Plan your day</Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-              </TouchableOpacity>
             </View>
           </View>
         )}
