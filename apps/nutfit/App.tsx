@@ -1,3 +1,5 @@
+import "react-native-gesture-handler";
+import "react-native-reanimated";
 import React from "react";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { MealOfTheDayProvider } from "./src/context/MealOfTheDayContext";
