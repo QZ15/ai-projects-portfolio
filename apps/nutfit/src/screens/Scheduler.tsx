@@ -67,93 +67,93 @@ export default function Scheduler() {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <View className="flex-row justify-between items-center px-4 py-2 border-b border-neutral-800">
-        <Text className="text-white text-[28px] font-bold">Schedule</Text>
-        <TouchableOpacity>
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      <PanGestureHandler onEnded={handleWeekSwipe}>
-        <View className="flex-row justify-between px-4 py-3 border-b border-neutral-800">
-          {weekDays.map((d) => (
-            <TouchableOpacity
-              key={d.format("YYYY-MM-DD")}
-              onPress={() => setDay(d)}
-              className="flex-1 items-center"
-            >
-              <Text
-                className={
-                  day.isSame(d, "day") ? "text-white font-semibold" : "text-gray-400"
-                }
-              >
-                {d.format("ddd")}
-              </Text>
-              <Text
-                className={
-                  day.isSame(d, "day")
-                    ? "text-white text-lg"
-                    : "text-gray-500 text-lg"
-                }
-              >
-                {d.format("D")}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      <View className="flex-1 px-5">
+        {/* Header */}
+        <View className="flex-row justify-between items-center mt-3 mb-6">
+          <Text className="text-white text-[28px] font-bold">Schedule</Text>
+          <TouchableOpacity>
+            <Ionicons name="add" size={22} color="#9CA3AF" />
+          </TouchableOpacity>
         </View>
-      </PanGestureHandler>
 
-      <Text className="text-center text-gray-400 mt-2 mb-2">
-        {day.format("dddd-MMM-D-YYYY")}
-      </Text>
-
-      <ScrollView contentContainerStyle={{ height: HOUR_HEIGHT * 24 }}>
-        <View style={{ flex: 1, position: "relative" }}>
-          {Array.from({ length: 24 }).map((_, hour) => (
-            <View
-              key={hour}
-              style={{
-                position: "absolute",
-                top: hour * HOUR_HEIGHT,
-                left: 0,
-                right: 0,
-                height: HOUR_HEIGHT,
-              }}
-            >
-              <View className="flex-row h-full">
-                <Text
-                  style={{
-                    width: 50,
-                    color: "#666",
-                    textAlign: "right",
-                    paddingRight: 8,
-                  }}
+        {/* Week day selector */}
+        <PanGestureHandler onEnded={handleWeekSwipe}>
+          <View className="flex-row justify-between py-2 mb-2">
+            {weekDays.map((d) => (
+              <TouchableOpacity
+                key={d.format("YYYY-MM-DD")}
+                onPress={() => setDay(d)}
+                className="flex-1 items-center"
+              >
+                <Text className="text-xs text-gray-400">{d.format("ddd")}</Text>
+                <View
+                  className={
+                    "w-10 h-10 mt-1 rounded-full flex items-center justify-center" +
+                    (day.isSame(d, "day") ? " bg-neutral-700" : "")
+                  }
                 >
-                  {dayjs().hour(hour).format("h A")}
-                </Text>
-                <View style={{ flex: 1, borderTopWidth: 1, borderColor: "#333" }} />
-              </View>
-            </View>
-          ))}
+                  <Text
+                    className={
+                      day.isSame(d, "day")
+                        ? "text-white font-semibold"
+                        : "text-gray-500"
+                    }
+                  >
+                    {d.format("D")}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </PanGestureHandler>
 
-          {items.map((item) => (
-            <View
-              key={item.id}
-              style={{
-                position: "absolute",
-                top: minutesToTop(item.time),
-                left: 60,
-                right: 16,
-                backgroundColor: "#1f2937",
-                padding: 8,
-                borderRadius: 8,
-              }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "600" }}>{item.title}</Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+        <Text className="text-center text-gray-400 mb-4">
+          {day.format("dddd-MMM-D-YYYY")}
+        </Text>
+
+        {/* Day timeline */}
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ height: HOUR_HEIGHT * 24 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={{ flex: 1, position: "relative" }}>
+            {Array.from({ length: 24 }).map((_, hour) => (
+              <View
+                key={hour}
+                style={{
+                  position: "absolute",
+                  top: hour * HOUR_HEIGHT,
+                  left: 0,
+                  right: 0,
+                  height: HOUR_HEIGHT,
+                }}
+              >
+                <View className="flex-row h-full">
+                  <Text className="w-12 pr-2 text-right text-gray-500">
+                    {dayjs().hour(hour).format("h A")}
+                  </Text>
+                  <View className="flex-1 border-t border-neutral-800" />
+                </View>
+              </View>
+            ))}
+
+            {items.map((item) => (
+              <View
+                key={item.id}
+                className="absolute bg-neutral-900 rounded-xl p-3"
+                style={{
+                  top: minutesToTop(item.time),
+                  left: 56,
+                  right: 0,
+                }}
+              >
+                <Text className="text-white font-semibold">{item.title}</Text>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
