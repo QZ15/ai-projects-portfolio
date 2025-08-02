@@ -33,6 +33,13 @@ export default function WorkoutFiltersForm({ showRequestedWorkout, showDaysPerWe
   const [requestedWorkoutEnabled, setRequestedWorkoutEnabled] = useState(filters.requestedWorkoutEnabled);
   const [requestedWorkout, setRequestedWorkout] = useState(filters.requestedWorkout || "");
 
+  useEffect(() => {
+    if (!showRequestedWorkout) {
+      setRequestedWorkoutEnabled(false);
+      setRequestedWorkout("");
+    }
+  }, [showRequestedWorkout]);
+
   const handleSave = () => {
     setFilters({
       fitnessGoal,

@@ -68,11 +68,42 @@ export default function WorkoutPlannerScreen() {
     );
   };
 
+  const buildActiveFilters = () => {
+    const {
+      fitnessGoal,
+      workoutType,
+      equipment,
+      daysPerWeek,
+      timePerWorkout,
+      muscleGroups,
+      excludedExercises,
+      requestedWorkout,
+      fitnessGoalEnabled,
+      workoutTypeEnabled,
+      equipmentEnabled,
+      daysPerWeekEnabled,
+      timePerWorkoutEnabled,
+      muscleGroupsEnabled,
+      excludedExercisesEnabled,
+      requestedWorkoutEnabled,
+    } = filters as any;
+
+    const active: any = {};
+    if (fitnessGoalEnabled) active.fitnessGoal = fitnessGoal;
+    if (workoutTypeEnabled) active.workoutType = workoutType;
+    if (equipmentEnabled) active.equipment = equipment;
+    if (daysPerWeekEnabled) active.daysPerWeek = daysPerWeek;
+    if (timePerWorkoutEnabled) active.timePerWorkout = timePerWorkout;
+    if (muscleGroupsEnabled) active.muscleGroups = muscleGroups;
+    if (excludedExercisesEnabled) active.excludedExercises = excludedExercises;
+    if (requestedWorkoutEnabled) active.requestedWorkout = requestedWorkout;
+    return active;
+  };
+
   const handleAIPlan = async () => {
     try {
       setLoading("plan");
-      const { requestedWorkout, requestedWorkoutEnabled, ...cleanFilters } = filters as any;
-      const plan = await generateWorkoutPlan(cleanFilters);
+      const plan = await generateWorkoutPlan(buildActiveFilters());
       if (Array.isArray(plan)) {
         setPlanWorkouts(plan);
       }
@@ -86,8 +117,7 @@ export default function WorkoutPlannerScreen() {
   const handleSingleWorkout = async () => {
     try {
       setLoading("single");
-      const { requestedWorkout, requestedWorkoutEnabled, ...cleanFilters } = filters as any;
-      const w = await generateSingleWorkout(cleanFilters);
+      const w = await generateSingleWorkout(buildActiveFilters());
       if (w) {
         addRecentWorkout(w);
         navigation.navigate("WorkoutDetails", { workout: w });
