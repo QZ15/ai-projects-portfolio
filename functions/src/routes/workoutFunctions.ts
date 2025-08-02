@@ -46,23 +46,3 @@ export const generateWorkoutPlan = functions.https.onCall(async (data) => {
     throw new functions.https.HttpsError("internal", err.message);
   }
 });
-
-export const generateRequestedWorkout = functions.https.onCall(async (data) => {
-  const filters = data.filters || {};
-  if (!filters.requestedWorkout) {
-    throw new functions.https.HttpsError("invalid-argument", "requestedWorkout required");
-  }
-  const prompt = `You are a professional fitness coach. Create the workout named "${filters.requestedWorkout}" with fields: workoutType, name, duration, equipment (array), exercises: [{name, sets, reps, rest, notes}]. Filters: ${JSON.stringify(filters)}. Respond only with JSON.`;
-  try {
-    const res = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-    });
-    const parsed = safeParse(res.choices[0].message?.content || "{}");
-    if (!parsed?.name) throw new Error("Invalid workout");
-    return parsed;
-  } catch (err: any) {
-    functions.logger.error("generateRequestedWorkout error", err);
-    throw new functions.https.HttpsError("internal", err.message);
-  }
-});

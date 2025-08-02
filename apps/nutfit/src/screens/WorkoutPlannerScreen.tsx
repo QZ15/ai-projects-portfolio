@@ -8,15 +8,15 @@ import {
   ActivityIndicator,
   LayoutAnimation,
   Image,
-  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
-import { generateWorkoutPlan, generateSingleWorkout, generateRequestedWorkout } from "../services/workoutService";
+import { generateWorkoutPlan, generateSingleWorkout } from "../services/workoutService";
 import { useWorkoutFilters } from "../context/WorkoutFilterContext";
 import { useWorkoutFavorites } from "../context/WorkoutFavoritesContext";
 import { useWeekWorkouts } from "../context/WeekWorkoutsContext";
 import { useRecentWorkouts } from "../context/RecentWorkoutsContext";
+import { useCompletedWorkouts } from "../context/CompletedWorkoutsContext";
 
 export default function WorkoutPlannerScreen() {
   const navigation = useNavigation<any>();
@@ -24,12 +24,14 @@ export default function WorkoutPlannerScreen() {
   const { favorites, toggleFavorite, isFavorite } = useWorkoutFavorites();
   const { weekWorkouts, addToWeek, removeFromWeek } = useWeekWorkouts();
   const { recentWorkouts, addRecentWorkout } = useRecentWorkouts();
+  const { completedWorkouts } = useCompletedWorkouts();
   const [loading, setLoading] = useState<string | null>(null);
   const [planWorkouts, setPlanWorkouts] = useState<any[]>([]);
   const [showAIPlan, setShowAIPlan] = useState(true);
   const [showWeek, setShowWeek] = useState(true);
   const [showFavorites, setShowFavorites] = useState(true);
   const [showRecent, setShowRecent] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(true);
   const [showAITools, setShowAITools] = useState(true);
   const [showWorkoutOfDay, setShowWorkoutOfDay] = useState(true);
 
@@ -97,27 +99,8 @@ export default function WorkoutPlannerScreen() {
     }
   };
 
-  const handleRequestedWorkout = async () => {
-    try {
-      setLoading("requested");
-      if (!filters.requestedWorkoutEnabled || !filters.requestedWorkout) {
-        Alert.alert("No Workout Entered", "Please enter a workout name in settings.");
-        return;
-      }
-      const w = await generateRequestedWorkout(filters);
-      if (w) {
-        addRecentWorkout(w);
-        navigation.navigate("WorkoutDetails", { workout: w });
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const workoutImage = (w: any) =>
-    `https://source.unsplash.com/400x300/?workout,${encodeURIComponent(w?.workoutType || "")}`;
+  const placeholderImage = "https://placehold.co/600x400?text=Workout";
+  const workoutImage = (w: any) => w?.image || placeholderImage;
 
   const workoutOfTheDay = weekWorkouts[0];
 
@@ -168,7 +151,7 @@ export default function WorkoutPlannerScreen() {
 
             {/* Single Workout */}
             <TouchableOpacity
-              className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
+              className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center"
               onPress={handleSingleWorkout}
               disabled={!!loading}
             >
@@ -187,36 +170,6 @@ export default function WorkoutPlannerScreen() {
                   <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
                 </TouchableOpacity>
                 {loading === "single" ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-                )}
-              </View>
-            </TouchableOpacity>
-
-            {/* Request Workout */}
-            <TouchableOpacity
-              className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center"
-              onPress={handleRequestedWorkout}
-              disabled={!!loading}
-            >
-              <View className="flex-row items-center flex-1">
-                <Ionicons name="create-outline" size={20} color="#fff" />
-                <View className="ml-3">
-                  <Text className="text-white text-base font-semibold">
-                    {loading === "requested" ? "Generating..." : "Request Workout"}
-                  </Text>
-                  <Text className="text-gray-400 text-xs mt-0.5">
-                    {filters.requestedWorkout || "Enter a workout in settings"}
-                  </Text>
-                </View>
-              </View>
-              <View style={{ width: 1, height: "100%", backgroundColor: "#3F3F46", marginHorizontal: 20 }} />
-              <View className="flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.navigate("RequestWorkout")}>
-                  <Ionicons name="settings-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />
-                </TouchableOpacity>
-                {loading === "requested" ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Ionicons name="chevron-forward" size={18} color="#6B7280" />
@@ -260,17 +213,24 @@ export default function WorkoutPlannerScreen() {
           </>
         )}
 
-        {/* Recent Workouts */}
+        {/* This Week's Workouts */}
         <TouchableOpacity
-          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowRecent(!showRecent); }}
+          onPress={() => {
+            LayoutAnimation.easeInEaseOut();
+            setShowWeek(!showWeek);
+          }}
           className="flex-row justify-between items-center"
         >
           <Text className="text-white text-lg font-semibold mt-6 mb-3">
-            Recent Workouts ({recentWorkouts.length})
+            This Weeks Workouts ({weekWorkouts.length})
           </Text>
           <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
         </TouchableOpacity>
-        {showRecent && recentWorkouts.map(renderWorkoutRow)}
+        {showWeek && (
+          <View style={{ maxHeight: weekWorkouts.length > 4 ? 300 : undefined }}>
+            <ScrollView>{weekWorkouts.map(renderWorkoutRow)}</ScrollView>
+          </View>
+        )}
 
         {/* AI Workout Plan */}
         {planWorkouts.length > 0 && (
@@ -285,28 +245,20 @@ export default function WorkoutPlannerScreen() {
               <Text className="text-white text-lg font-semibold mt-6 mb-3">AI Workout Plan</Text>
               <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
             </TouchableOpacity>
-            {showAIPlan && planWorkouts.map(renderWorkoutRow)}
+            {showAIPlan && (
+              <View style={{ maxHeight: planWorkouts.length > 4 ? 300 : undefined }}>
+                <ScrollView>{planWorkouts.map(renderWorkoutRow)}</ScrollView>
+              </View>
+            )}
           </>
         )}
 
-        {/* This Week's Workouts */}
+        {/* Favorites */}
         <TouchableOpacity
           onPress={() => {
             LayoutAnimation.easeInEaseOut();
-            setShowWeek(!showWeek);
+            setShowFavorites(!showFavorites);
           }}
-          className="flex-row justify-between items-center"
-        >
-          <Text className="text-white text-lg font-semibold mt-6 mb-3">
-            This Weeks Workouts ({weekWorkouts.length})
-          </Text>
-          <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
-        </TouchableOpacity>
-        {showWeek && weekWorkouts.map(renderWorkoutRow)}
-
-        {/* Favorites */}
-        <TouchableOpacity
-          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowFavorites(!showFavorites); }}
           className="flex-row justify-between items-center"
         >
           <Text className="text-white text-lg font-semibold mt-6 mb-3">
@@ -314,7 +266,49 @@ export default function WorkoutPlannerScreen() {
           </Text>
           <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
         </TouchableOpacity>
-        {showFavorites && favorites.map(renderWorkoutRow)}
+        {showFavorites && (
+          <View style={{ maxHeight: favorites.length > 4 ? 300 : undefined }}>
+            <ScrollView>{favorites.map(renderWorkoutRow)}</ScrollView>
+          </View>
+        )}
+
+        {/* Recent Workouts */}
+        <TouchableOpacity
+          onPress={() => {
+            LayoutAnimation.easeInEaseOut();
+            setShowRecent(!showRecent);
+          }}
+          className="flex-row justify-between items-center"
+        >
+          <Text className="text-white text-lg font-semibold mt-6 mb-3">
+            Recent Workouts ({recentWorkouts.length})
+          </Text>
+          <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
+        </TouchableOpacity>
+        {showRecent && (
+          <View style={{ maxHeight: recentWorkouts.length > 4 ? 300 : undefined }}>
+            <ScrollView>{recentWorkouts.map(renderWorkoutRow)}</ScrollView>
+          </View>
+        )}
+
+        {/* Completed Workouts */}
+        <TouchableOpacity
+          onPress={() => {
+            LayoutAnimation.easeInEaseOut();
+            setShowCompleted(!showCompleted);
+          }}
+          className="flex-row justify-between items-center"
+        >
+          <Text className="text-white text-lg font-semibold mt-6 mb-3">
+            Completed Workouts ({completedWorkouts.length})
+          </Text>
+          <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
+        </TouchableOpacity>
+        {showCompleted && (
+          <View style={{ maxHeight: completedWorkouts.length > 4 ? 300 : undefined }}>
+            <ScrollView>{completedWorkouts.map(renderWorkoutRow)}</ScrollView>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

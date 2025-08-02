@@ -12,9 +12,3 @@ export async function generateSingleWorkout(filters: any) {
   const res: any = await fn({ filters });
   return res.data;
 }
-
-export async function generateRequestedWorkout(filters: any) {
-  const fn = httpsCallable(functions, "generateRequestedWorkoutFunction");
-  const res: any = await fn({ filters });
-  return res.data;
-}

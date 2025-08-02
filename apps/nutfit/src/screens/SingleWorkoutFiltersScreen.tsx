@@ -18,7 +18,7 @@ export default function SingleWorkoutFiltersScreen({ navigation }: any) {
     <SafeAreaView className="flex-1 bg-black">
       <ScrollView>
         <Header title="Workout Filters" navigation={navigation} />
-        <WorkoutFiltersForm showDaysPerWeek={false} />
+        <WorkoutFiltersForm showDaysPerWeek={false} showRequestedWorkout />
       </ScrollView>
     </SafeAreaView>
   );

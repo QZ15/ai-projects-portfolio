@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateRequestedWorkout = exports.generateWorkoutPlan = exports.generateSingleWorkout = void 0;
+exports.generateWorkoutPlan = exports.generateSingleWorkout = void 0;
 const functions = require("firebase-functions");
 const openai_1 = require("../services/openai.js");
 function safeParse(content) {
@@ -49,27 +49,6 @@ exports.generateWorkoutPlan = functions.https.onCall(async (data) => {
     }
     catch (err) {
         functions.logger.error("generateWorkoutPlan error", err);
-        throw new functions.https.HttpsError("internal", err.message);
-    }
-});
-exports.generateRequestedWorkout = functions.https.onCall(async (data) => {
-    const filters = data.filters || {};
-    if (!filters.requestedWorkout) {
-        throw new functions.https.HttpsError("invalid-argument", "requestedWorkout required");
-    }
-    const prompt = `You are a professional fitness coach. Create the workout named "${filters.requestedWorkout}" with fields: workoutType, name, duration, equipment (array), exercises: [{name, sets, reps, rest, notes}]. Filters: ${JSON.stringify(filters)}. Respond only with JSON.`;
-    try {
-        const res = await openai_1.default.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: prompt }],
-        });
-        const parsed = safeParse(res.choices[0].message?.content || "{}");
-        if (!parsed?.name)
-            throw new Error("Invalid workout");
-        return parsed;
-    }
-    catch (err) {
-        functions.logger.error("generateRequestedWorkout error", err);
         throw new functions.https.HttpsError("internal", err.message);
     }
 });

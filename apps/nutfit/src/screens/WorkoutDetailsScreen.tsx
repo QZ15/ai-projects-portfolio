@@ -4,6 +4,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useWeekWorkouts } from "../context/WeekWorkoutsContext";
 import { useWorkoutFavorites } from "../context/WorkoutFavoritesContext";
+import { useCompletedWorkouts } from "../context/CompletedWorkoutsContext";
 
 export default function WorkoutDetailsScreen() {
   const route = useRoute();
@@ -11,12 +12,11 @@ export default function WorkoutDetailsScreen() {
   const { workout } = (route.params as any) || {};
   const { weekWorkouts, addToWeek, removeFromWeek } = useWeekWorkouts();
   const { toggleFavorite, isFavorite } = useWorkoutFavorites();
+  const { addCompletedWorkout } = useCompletedWorkouts();
 
   const title = workout?.name || "Workout";
   const inWeek = weekWorkouts.some((w) => w.name === workout?.name);
-  const workoutImage = `https://source.unsplash.com/600x400/?workout,${encodeURIComponent(
-    workout?.workoutType || ""
-  )}`;
+  const workoutImage = workout?.image || "https://placehold.co/600x400?text=Workout";
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -76,7 +76,11 @@ export default function WorkoutDetailsScreen() {
         {inWeek && (
           <TouchableOpacity
             className="bg-blue-500 p-4 rounded-2xl items-center"
-            onPress={() => removeFromWeek(workout)}
+            onPress={() => {
+              addCompletedWorkout(workout);
+              removeFromWeek(workout);
+              navigation.goBack();
+            }}
           >
             <Text className="text-white font-semibold">Mark Completed</Text>
           </TouchableOpacity>

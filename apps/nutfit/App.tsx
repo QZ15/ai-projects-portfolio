@@ -9,6 +9,7 @@ import { WorkoutFilterProvider } from "./src/context/WorkoutFilterContext";
 import { WorkoutFavoritesProvider } from "./src/context/WorkoutFavoritesContext";
 import { WeekWorkoutsProvider } from "./src/context/WeekWorkoutsContext";
 import { RecentWorkoutsProvider } from "./src/context/RecentWorkoutsContext";
+import { CompletedWorkoutsProvider } from "./src/context/CompletedWorkoutsContext";
 
 export default function App() {
   return (
@@ -18,13 +19,15 @@ export default function App() {
           <WorkoutFavoritesProvider>
             <TodayMealsProvider>
               <WeekWorkoutsProvider>
-                <MealOfTheDayProvider>
-                  <RecentMealsProvider>
-                    <RecentWorkoutsProvider>
-                      <RootNavigator />
-                    </RecentWorkoutsProvider>
-                  </RecentMealsProvider>
-                </MealOfTheDayProvider>
+                <CompletedWorkoutsProvider>
+                  <MealOfTheDayProvider>
+                    <RecentMealsProvider>
+                      <RecentWorkoutsProvider>
+                        <RootNavigator />
+                      </RecentWorkoutsProvider>
+                    </RecentMealsProvider>
+                  </MealOfTheDayProvider>
+                </CompletedWorkoutsProvider>
               </WeekWorkoutsProvider>
             </TodayMealsProvider>
           </WorkoutFavoritesProvider>
