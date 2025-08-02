@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -6,6 +6,8 @@ import { PanGestureHandler } from "react-native-gesture-handler";
 import dayjs from "dayjs";
 import { useTodayMeals } from "../context/TodayMealsContext";
 import { useWeekWorkouts } from "../context/WeekWorkoutsContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
 const HOUR_HEIGHT = 60;
 const defaultMealTimes: Record<string, string> = {
@@ -22,35 +24,84 @@ const timeToDate = (base: dayjs.Dayjs, time: string) => {
 };
 
 export default function Scheduler() {
+  const navigation = useNavigation<any>();
   const { todayMeals } = useTodayMeals();
   const { weekWorkouts } = useWeekWorkouts();
   const [day, setDay] = useState(dayjs());
   const [weekStart, setWeekStart] = useState(day.startOf("week"));
+  const [schedules, setSchedules] = useState<Record<string, any[]>>({});
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day")),
     [weekStart]
   );
 
-  const items = useMemo(() => {
-    const meals = todayMeals.map((meal: any) => ({
-      id: `meal-${meal.name}`,
-      title: meal.name,
-      time: timeToDate(day.clone().startOf("day"), defaultMealTimes[meal.mealType] || "09:00"),
-    }));
+  const dayKey = day.format("YYYY-MM-DD");
+
+  const buildDefault = () => {
+    const base = day.clone().startOf("day");
+    const used = new Set<string>();
+    const allSlots = ["09:00", "12:00", "18:00", "20:00"];
+    const takeSlot = (preferred: string) => {
+      if (!used.has(preferred)) {
+        used.add(preferred);
+        return preferred;
+      }
+      const start = allSlots.indexOf(preferred);
+      for (let i = 1; i <= allSlots.length; i++) {
+        const slot = allSlots[(start + i) % allSlots.length];
+        if (!used.has(slot)) {
+          used.add(slot);
+          return slot;
+        }
+      }
+      for (let h = 0; h < 24; h++) {
+        const t = `${String(h).padStart(2, "0")}:00`;
+        if (!used.has(t)) {
+          used.add(t);
+          return t;
+        }
+      }
+      return "00:00";
+    };
+
+    const meals = todayMeals.map((meal: any, idx: number) => {
+      const pref = defaultMealTimes[meal.mealType] || allSlots[idx] || "09:00";
+      const time = timeToDate(base, takeSlot(pref));
+      return { id: `meal-${idx}-${meal.name}`, title: meal.name, time };
+    });
 
     const workouts = weekWorkouts.length
       ? [
           {
             id: `workout-${weekWorkouts[0].name}`,
             title: weekWorkouts[0].name,
-            time: timeToDate(day.clone().startOf("day"), defaultWorkoutTime),
+            time: timeToDate(base, takeSlot(defaultWorkoutTime)),
           },
         ]
       : [];
 
     return [...meals, ...workouts].sort((a, b) => a.time.valueOf() - b.time.valueOf());
-  }, [todayMeals, weekWorkouts, day]);
+  };
+
+  useEffect(() => {
+    (async () => {
+      const saved = await AsyncStorage.getItem("scheduleItems");
+      if (saved) setSchedules(JSON.parse(saved));
+    })();
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem("scheduleItems", JSON.stringify(schedules));
+  }, [schedules]);
+
+  useEffect(() => {
+    if (!schedules[dayKey]) {
+      setSchedules((prev) => ({ ...prev, [dayKey]: buildDefault() }));
+    }
+  }, [dayKey, todayMeals, weekWorkouts]);
+
+  const items = schedules[dayKey] || [];
 
   const minutesToTop = (date: dayjs.Dayjs) =>
     date.diff(day.startOf("day"), "minute") * (HOUR_HEIGHT / 60);
@@ -71,9 +122,14 @@ export default function Scheduler() {
         {/* Header */}
         <View className="flex-row justify-between items-center mt-3 mb-6">
           <Text className="text-white text-[28px] font-bold">Schedule</Text>
-          <TouchableOpacity>
-            <Ionicons name="add" size={22} color="#9CA3AF" />
-          </TouchableOpacity>
+          <View className="flex-row gap-4">
+            <TouchableOpacity onPress={() => navigation.navigate("Settings") }>
+              <Ionicons name="settings-outline" size={22} color="#9CA3AF" />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Ionicons name="add" size={22} color="#9CA3AF" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Week day selector */}
