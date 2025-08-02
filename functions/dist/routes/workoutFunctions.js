@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateWorkoutPlan = exports.generateSingleWorkout = void 0;
-const functions = require("firebase-functions");
-const openai_1 = require("../services/openai.js");
+import * as functions from "firebase-functions";
+import openai from "../services/openai.js";
 function safeParse(content) {
     try {
         const jsonMatch = content.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
@@ -15,11 +12,11 @@ function safeParse(content) {
         return null;
     }
 }
-exports.generateSingleWorkout = functions.https.onCall(async (data) => {
+export const generateSingleWorkout = functions.https.onCall(async (data) => {
     const filters = data.filters || {};
     const prompt = `You are a professional fitness coach. Create one workout in JSON format with fields: workoutType, primaryMuscleGroup (one of [Push, Pull, Legs, Arms, Core, Full Body]), name, duration (minutes), equipment (array), exercises (array of {name, sets, reps, rest, notes}). Consider these filters: ${JSON.stringify(filters)}. Respond with valid JSON.`;
     try {
-        const res = await openai_1.default.chat.completions.create({
+        const res = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [{ role: "user", content: prompt }],
         });
@@ -33,12 +30,12 @@ exports.generateSingleWorkout = functions.https.onCall(async (data) => {
         throw new functions.https.HttpsError("internal", err.message);
     }
 });
-exports.generateWorkoutPlan = functions.https.onCall(async (data) => {
+export const generateWorkoutPlan = functions.https.onCall(async (data) => {
     const filters = data.filters || {};
     const days = filters.daysPerWeek || 3;
     const prompt = `You are a professional fitness coach. Create a ${days}-day workout plan as JSON array. Each item must have: workoutType, primaryMuscleGroup (one of [Push, Pull, Legs, Arms, Core, Full Body]), name, duration, equipment (array), exercises: [{name, sets, reps, rest, notes}]. Use these filters: ${JSON.stringify(filters)}. Respond with valid JSON array.`;
     try {
-        const res = await openai_1.default.chat.completions.create({
+        const res = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [{ role: "user", content: prompt }],
         });

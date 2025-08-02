@@ -17,13 +17,13 @@ export default function WorkoutDetailsScreen() {
   const title = workout?.name || "Workout";
 
   const fallbackImages: Record<string, string> = {
-    Push: "https://placehold.co/600x400?text=Push",
-    Pull: "https://placehold.co/600x400?text=Pull",
-    Legs: "https://placehold.co/600x400?text=Legs",
-    Arms: "https://placehold.co/600x400?text=Arms",
-    Core: "https://placehold.co/600x400?text=Core",
-    "Full Body": "https://placehold.co/600x400?text=Full%20Body",
-    Default: "https://placehold.co/600x400?text=Workout",
+    Push: "https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?q=80&w=1073&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Pull: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Legs: "https://images.unsplash.com/photo-1604233098531-90b71b1b17a6?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Arms: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Core: "https://images.unsplash.com/photo-1437935690510-49ce2c715aee?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "Full Body": "https://images.unsplash.com/photo-1434754205268-ad3b5f549b11?q=80&w=1174&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    Default: "https://images.unsplash.com/photo-1604335788369-94f349ae5243?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   };
 
   const key = workout?.primaryMuscleGroup || workout?.workoutType;
