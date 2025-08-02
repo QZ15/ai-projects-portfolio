@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { PanGestureHandler } from "react-native-gesture-handler";
 import dayjs from "dayjs";
 import { useTodayMeals } from "../context/TodayMealsContext";
 import { useWeekWorkouts } from "../context/WeekWorkoutsContext";
@@ -24,6 +25,12 @@ export default function Scheduler() {
   const { todayMeals } = useTodayMeals();
   const { weekWorkouts } = useWeekWorkouts();
   const [day, setDay] = useState(dayjs());
+  const [weekStart, setWeekStart] = useState(day.startOf("week"));
+
+  const weekDays = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day")),
+    [weekStart]
+  );
 
   const items = useMemo(() => {
     const meals = todayMeals.map((meal: any) => ({
@@ -48,17 +55,57 @@ export default function Scheduler() {
   const minutesToTop = (date: dayjs.Dayjs) =>
     date.diff(day.startOf("day"), "minute") * (HOUR_HEIGHT / 60);
 
+  const handleWeekSwipe = ({ nativeEvent }: any) => {
+    if (nativeEvent.translationX < -50) {
+      setWeekStart(weekStart.add(1, "week"));
+      setDay(day.add(1, "week"));
+    } else if (nativeEvent.translationX > 50) {
+      setWeekStart(weekStart.subtract(1, "week"));
+      setDay(day.subtract(1, "week"));
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <View className="flex-row items-center justify-between p-4 border-b border-neutral-800">
-        <TouchableOpacity onPress={() => setDay(day.subtract(1, "day"))}>
-          <Ionicons name="chevron-back" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text className="text-white font-semibold">{day.format("dddd, MMM D")}</Text>
-        <TouchableOpacity onPress={() => setDay(day.add(1, "day"))}>
-          <Ionicons name="chevron-forward" size={20} color="#fff" />
+      <View className="flex-row justify-between items-center px-4 py-2 border-b border-neutral-800">
+        <Text className="text-white text-[28px] font-bold">Schedule</Text>
+        <TouchableOpacity>
+          <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
+
+      <PanGestureHandler onEnded={handleWeekSwipe}>
+        <View className="flex-row justify-between px-4 py-3 border-b border-neutral-800">
+          {weekDays.map((d) => (
+            <TouchableOpacity
+              key={d.format("YYYY-MM-DD")}
+              onPress={() => setDay(d)}
+              className="flex-1 items-center"
+            >
+              <Text
+                className={
+                  day.isSame(d, "day") ? "text-white font-semibold" : "text-gray-400"
+                }
+              >
+                {d.format("ddd")}
+              </Text>
+              <Text
+                className={
+                  day.isSame(d, "day")
+                    ? "text-white text-lg"
+                    : "text-gray-500 text-lg"
+                }
+              >
+                {d.format("D")}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </PanGestureHandler>
+
+      <Text className="text-center text-gray-400 mt-2 mb-2">
+        {day.format("dddd-MMM-D-YYYY")}
+      </Text>
 
       <ScrollView contentContainerStyle={{ height: HOUR_HEIGHT * 24 }}>
         <View style={{ flex: 1, position: "relative" }}>
