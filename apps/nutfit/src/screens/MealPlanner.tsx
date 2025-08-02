@@ -368,22 +368,17 @@ export default function MealPlanner() {
           </TouchableOpacity>
         )}
 
-        {/*  Recent Meals */}
+        {/* Today Meals */}
         <TouchableOpacity
-          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowRecentMeals(!showRecentMeals); }}
+          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowToday(!showToday); }}
           className="flex-row justify-between items-center"
         >
           <Text className="text-white text-lg font-semibold mt-6 mb-3">
-            Recently Generated ({recentMeals.length})
+            Today’s Meals ({todayMeals.length})
           </Text>
           <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
         </TouchableOpacity>
-
-        {showRecentMeals && (
-          <View style={{ maxHeight: recentMeals.length > 4 ? 300 : undefined }}>
-            <ScrollView>{recentMeals.map(renderMealRow)}</ScrollView>
-          </View>
-        )}
+        {showToday && todayMeals.map(renderMealRow)}
 
         {/* AI Meal Plan */}
         {planMeals.length > 0 && (
@@ -399,18 +394,6 @@ export default function MealPlanner() {
           </>
         )}
 
-        {/* Today Meals */}
-        <TouchableOpacity
-          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowToday(!showToday); }}
-          className="flex-row justify-between items-center"
-        >
-          <Text className="text-white text-lg font-semibold mt-6 mb-3">
-            Today’s Meals ({todayMeals.length})
-          </Text>
-          <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
-        </TouchableOpacity>
-        {showToday && todayMeals.map(renderMealRow)}
-
         {/* Favorites */}
         <TouchableOpacity
           onPress={() => { LayoutAnimation.easeInEaseOut(); setShowFavorites(!showFavorites); }}
@@ -424,6 +407,23 @@ export default function MealPlanner() {
         {showFavorites && (
           <View style={{ maxHeight: 300 }}>
             <ScrollView>{favorites.map(renderMealRow)}</ScrollView>
+          </View>
+        )}
+
+        {/*  Recent Meals */}
+        <TouchableOpacity
+          onPress={() => { LayoutAnimation.easeInEaseOut(); setShowRecentMeals(!showRecentMeals); }}
+          className="flex-row justify-between items-center"
+        >
+          <Text className="text-white text-lg font-semibold mt-6 mb-3">
+            Recently Generated ({recentMeals.length})
+          </Text>
+          <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
+        </TouchableOpacity>
+
+        {showRecentMeals && (
+          <View style={{ maxHeight: recentMeals.length > 4 ? 300 : undefined }}>
+            <ScrollView>{recentMeals.map(renderMealRow)}</ScrollView>
           </View>
         )}
       </ScrollView>

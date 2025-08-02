@@ -9,6 +9,7 @@ import progressRoutes from "./routes/progressFeedback.js";
 
 // ✅ Import callable functions
 import { generateSingleMeal, generateMealPlan, generateRequestedMeal } from "./routes/mealFunctions.js";
+import { generateSingleWorkout, generateWorkoutPlan } from "./routes/workoutFunctions.js";
 
 const app = express();
 
@@ -29,6 +30,8 @@ app.use("/api/progress-feedback", progressRoutes);
 export const generateSingleMealFunction = generateSingleMeal;
 export const generateMealPlanFunction = generateMealPlan;
 export const generateRequestedMealFunction = generateRequestedMeal;
+export const generateSingleWorkoutFunction = generateSingleWorkout;
+export const generateWorkoutPlanFunction = generateWorkoutPlan;
 
 // ✅ Export Express API
 export const api = functions.https.onRequest(app);
