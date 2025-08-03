@@ -351,11 +351,11 @@ export default function Scheduler() {
               return (
                 <View
                   key={item.id}
-                  {...responder.panHandlers}
                   className="absolute bg-neutral-900 rounded-xl"
                   style={{ top, left: 56, right: 0 }}
                 >
                   <TouchableOpacity
+                    {...responder.panHandlers}
                     activeOpacity={0.9}
                     delayLongPress={500}
                     onLongPress={(e) => {
