@@ -41,6 +41,7 @@ export default function Scheduler() {
   const dayRef = useRef(day);
   const updateRef = useRef<(it: any) => void>(() => {});
   const [scrollEnabled, setScrollEnabled] = useState(true);
+  const draggingRef = useRef<string | null>(null);
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day")),
@@ -159,6 +160,7 @@ export default function Scheduler() {
   const items = schedules[dayKey] || [];
   itemsRef.current = items;
   dayRef.current = day;
+  draggingRef.current = draggingId;
 
   const updateItem = (updated: any) => {
     setSchedules((prev) => ({
@@ -181,9 +183,9 @@ export default function Scheduler() {
   const getResponder = (id: string) => {
     if (!responders.current[id]) {
       responders.current[id] = PanResponder.create({
-        onStartShouldSetPanResponder: () => draggingId === id,
-        onMoveShouldSetPanResponder: () => draggingId === id,
-        onMoveShouldSetPanResponderCapture: () => draggingId === id,
+        onStartShouldSetPanResponder: () => draggingRef.current === id,
+        onMoveShouldSetPanResponder: () => draggingRef.current === id,
+        onMoveShouldSetPanResponderCapture: () => draggingRef.current === id,
         onPanResponderTerminationRequest: () => false,
         onPanResponderMove: (_, g) => {
           setDragOffset(g.dy);
@@ -198,6 +200,7 @@ export default function Scheduler() {
               .add(minutes, "minute");
             updateRef.current({ ...original, time: newTime });
           }
+          draggingRef.current = null;
           setDraggingId(null);
           setDragOffset(0);
           setScrollEnabled(true);
@@ -361,12 +364,14 @@ export default function Scheduler() {
                     delayLongPress={500}
                     onLongPress={(e) => {
                       e.stopPropagation();
+                      draggingRef.current = item.id;
                       setDraggingId(item.id);
                       setDragOffset(0);
                       setScrollEnabled(false);
                     }}
                     onPressOut={() => {
-                      if (draggingId === item.id) {
+                      if (draggingRef.current === item.id) {
+                        draggingRef.current = null;
                         setDraggingId(null);
                         setDragOffset(0);
                         setScrollEnabled(true);
