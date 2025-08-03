@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { View, Text, ScrollView, TouchableOpacity, PanResponder, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -36,6 +36,10 @@ export default function Scheduler() {
   });
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
+  const responders = useRef<Record<string, any>>({});
+  const itemsRef = useRef<any[]>([]);
+  const dayRef = useRef(day);
+  const updateRef = useRef<(it: any) => void>(() => {});
   const [scrollEnabled, setScrollEnabled] = useState(true);
 
   const weekDays = useMemo(
@@ -153,6 +157,8 @@ export default function Scheduler() {
   }, [dayKey, mealsKey, workoutsKey, prefs]);
 
   const items = schedules[dayKey] || [];
+  itemsRef.current = items;
+  dayRef.current = day;
 
   const updateItem = (updated: any) => {
     setSchedules((prev) => ({
@@ -163,6 +169,8 @@ export default function Scheduler() {
     }));
   };
 
+  updateRef.current = updateItem;
+
   const deleteItem = (id: string) => {
     setSchedules((prev) => ({
       ...prev,
@@ -170,26 +178,36 @@ export default function Scheduler() {
     }));
   };
 
-  const getResponder = (id: string) =>
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => draggingId === id,
-      onMoveShouldSetPanResponder: () => draggingId === id,
-      onPanResponderMove: (_, g) => {
-        setDragOffset(g.dy);
-      },
-      onPanResponderRelease: (_, g) => {
-        const original = items.find((i) => i.id === id);
-        if (original) {
-          const minutes =
-            minutesToTop(original.time) + (g.dy / HOUR_HEIGHT) * 60;
-          const newTime = day.startOf("day").add(minutes, "minute");
-          updateItem({ ...original, time: newTime });
-        }
-        setDraggingId(null);
-        setDragOffset(0);
-        setScrollEnabled(true);
-      },
-    });
+  const getResponder = (id: string) => {
+    if (!responders.current[id]) {
+      responders.current[id] = PanResponder.create({
+        onStartShouldSetPanResponder: () => draggingId === id,
+        onMoveShouldSetPanResponder: () => draggingId === id,
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderMove: (_, g) => {
+          setDragOffset(g.dy);
+        },
+        onPanResponderRelease: (_, g) => {
+          const original = itemsRef.current.find((i) => i.id === id);
+          if (original) {
+            const minutes =
+              minutesToTop(original.time) + (g.dy / HOUR_HEIGHT) * 60;
+            const newTime = dayRef.current
+              .startOf("day")
+              .add(minutes, "minute");
+            updateRef.current({ ...original, time: newTime });
+          }
+          setDraggingId(null);
+          setDragOffset(0);
+          setScrollEnabled(true);
+        },
+        onPanResponderTerminate: (_, g) => {
+          responders.current[id].panHandlers.onPanResponderRelease(_, g);
+        },
+      });
+    }
+    return responders.current[id];
+  };
 
   const handleAdd = () => {
     const base = day.clone().startOf("day");
