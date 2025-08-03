@@ -183,6 +183,7 @@ export default function Scheduler() {
       responders.current[id] = PanResponder.create({
         onStartShouldSetPanResponder: () => draggingId === id,
         onMoveShouldSetPanResponder: () => draggingId === id,
+        onMoveShouldSetPanResponderCapture: () => draggingId === id,
         onPanResponderTerminationRequest: () => false,
         onPanResponderMove: (_, g) => {
           setDragOffset(g.dy);
@@ -363,6 +364,13 @@ export default function Scheduler() {
                       setDraggingId(item.id);
                       setDragOffset(0);
                       setScrollEnabled(false);
+                    }}
+                    onPressOut={() => {
+                      if (draggingId === item.id) {
+                        setDraggingId(null);
+                        setDragOffset(0);
+                        setScrollEnabled(true);
+                      }
                     }}
                     onPress={() =>
                       navigation.navigate("ScheduleDetails", {
