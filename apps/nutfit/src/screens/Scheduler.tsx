@@ -44,6 +44,8 @@ export default function Scheduler() {
   );
 
   const dayKey = day.format("YYYY-MM-DD");
+  const mealsKey = useMemo(() => JSON.stringify(todayMeals), [todayMeals]);
+  const workoutsKey = useMemo(() => JSON.stringify(weekWorkouts), [weekWorkouts]);
 
   const buildDefault = () => {
     const base = day.clone().startOf("day");
@@ -144,7 +146,7 @@ export default function Scheduler() {
         ),
       };
     });
-  }, [dayKey, todayMeals, weekWorkouts, prefs]);
+    }, [dayKey, mealsKey, workoutsKey, prefs]);
 
   const items = schedules[dayKey] || [];
 
