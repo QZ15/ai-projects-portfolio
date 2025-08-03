@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import DashboardScreen from "../screens/DashboardScreen";
 import Scheduler from "../screens/Scheduler";
 import ScheduleDetailsScreen from "../screens/ScheduleDetailsScreen";
+import ScheduleSettings from "../screens/ScheduleSettings";
 const Progress = lazy(() => import("../screens/Progress"));
 import SettingsScreen from "../screens/SettingsScreen";
 import MealStackNavigator from "./MealStackNavigator";
@@ -22,6 +23,7 @@ function ScheduleStackNavigator() {
     <ScheduleStack.Navigator screenOptions={{ headerShown: false }}>
       <ScheduleStack.Screen name="Scheduler" component={Scheduler} />
       <ScheduleStack.Screen name="ScheduleDetails" component={ScheduleDetailsScreen} />
+      <ScheduleStack.Screen name="ScheduleSettings" component={ScheduleSettings} />
     </ScheduleStack.Navigator>
   );
 }

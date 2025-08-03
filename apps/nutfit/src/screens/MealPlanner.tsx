@@ -333,6 +333,7 @@ export default function MealPlanner() {
                 </View>
                 <Ionicons name="chevron-forward" size={18} color="#6B7280" />
               </TouchableOpacity>
+
             </View>
           </View>
         )}
