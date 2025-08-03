@@ -93,6 +93,7 @@ export default function ScheduleSettings({ navigation }) {
           ).toDate()}
           onConfirm={handleConfirm}
           onCancel={() => setPickerKey(null)}
+          minimumDate={dayjs().startOf("day").toDate()}
           isDarkModeEnabled
           is24Hour
         />

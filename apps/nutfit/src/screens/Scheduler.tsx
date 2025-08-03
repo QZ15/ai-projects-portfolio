@@ -139,14 +139,18 @@ export default function Scheduler() {
     setSchedules((prev) => {
       const existing = prev[dayKey] || [];
       const events = existing.filter((it: any) => it.type === "event");
+      const merged = auto.map((it) => {
+        const found = existing.find((ex) => ex.id === it.id);
+        return found ? { ...it, time: found.time } : it;
+      });
       return {
         ...prev,
-        [dayKey]: [...auto, ...events].sort(
+        [dayKey]: [...merged, ...events].sort(
           (a, b) => a.time.valueOf() - b.time.valueOf()
         ),
       };
     });
-    }, [dayKey, mealsKey, workoutsKey, prefs]);
+  }, [dayKey, mealsKey, workoutsKey, prefs]);
 
   const items = schedules[dayKey] || [];
 
@@ -168,7 +172,7 @@ export default function Scheduler() {
 
   const getResponder = (id: string) =>
     PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponder: () => draggingId === id,
       onMoveShouldSetPanResponder: () => draggingId === id,
       onPanResponderMove: (_, g) => {
         setDragOffset(g.dy);
