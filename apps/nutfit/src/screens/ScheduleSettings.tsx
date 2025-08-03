@@ -94,6 +94,8 @@ export default function ScheduleSettings({ navigation }) {
           onConfirm={handleConfirm}
           onCancel={() => setPickerKey(null)}
           isDarkModeEnabled
+          minimumDate={new Date(0)}
+          is24Hour
         />
       </View>
     </SafeAreaView>

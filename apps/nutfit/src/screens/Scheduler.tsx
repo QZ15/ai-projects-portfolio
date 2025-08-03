@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, PanResponder } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, PanResponder, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { PanGestureHandler, LongPressGestureHandler } from "react-native-gesture-handler";
+import { PanGestureHandler } from "react-native-gesture-handler";
 import dayjs from "dayjs";
 import { useTodayMeals } from "../context/TodayMealsContext";
 import { useWeekWorkouts } from "../context/WeekWorkoutsContext";
@@ -122,6 +122,7 @@ export default function Scheduler() {
     const loadPrefs = async () => {
       const prefSaved = await AsyncStorage.getItem("schedulePrefs");
       if (prefSaved) setPrefs(JSON.parse(prefSaved));
+      setScrollEnabled(true);
     };
     const unsub = navigation.addListener("focus", loadPrefs);
     return unsub;
@@ -136,13 +137,9 @@ export default function Scheduler() {
     setSchedules((prev) => {
       const existing = prev[dayKey] || [];
       const events = existing.filter((it: any) => it.type === "event");
-      const merged = auto.map((it) => {
-        const found = existing.find((e: any) => e.id === it.id);
-        return found ? { ...it, time: found.time } : it;
-      });
       return {
         ...prev,
-        [dayKey]: [...merged, ...events].sort(
+        [dayKey]: [...auto, ...events].sort(
           (a, b) => a.time.valueOf() - b.time.valueOf()
         ),
       };
@@ -201,7 +198,7 @@ export default function Scheduler() {
       [dayKey]: [...items, newItem].sort((a, b) => a.time.valueOf() - b.time.valueOf()),
     }));
     navigation.navigate("ScheduleDetails", {
-      item: newItem,
+      item: { ...newItem, time: newItem.time.toISOString() },
       onUpdate: updateItem,
       onDelete: deleteItem,
       onCancelNew: deleteItem,
@@ -210,7 +207,7 @@ export default function Scheduler() {
   };
 
   const handleLongPress = (e: any) => {
-    const y = e.nativeEvent.y;
+    const y = e.nativeEvent.locationY;
     const minutes = (y / HOUR_HEIGHT) * 60;
     const newItem = {
       id: `event-${Date.now()}`,
@@ -223,7 +220,7 @@ export default function Scheduler() {
       [dayKey]: [...items, newItem].sort((a, b) => a.time.valueOf() - b.time.valueOf()),
     }));
     navigation.navigate("ScheduleDetails", {
-      item: newItem,
+      item: { ...newItem, time: newItem.time.toISOString() },
       onUpdate: updateItem,
       onDelete: deleteItem,
       onCancelNew: deleteItem,
@@ -302,65 +299,64 @@ export default function Scheduler() {
           showsVerticalScrollIndicator={false}
           scrollEnabled={scrollEnabled}
         >
-          <LongPressGestureHandler minDurationMs={800} onActivated={handleLongPress}>
-            <View style={{ flex: 1, position: "relative" }}>
-              {Array.from({ length: 24 }).map((_, hour) => (
-                <View
-                  key={hour}
-                  style={{
-                    position: "absolute",
-                    top: hour * HOUR_HEIGHT,
-                    left: 0,
-                    right: 0,
-                    height: HOUR_HEIGHT,
-                  }}
-                >
-                  <View className="flex-row h-full">
-                    <Text className="w-12 pr-2 text-right text-gray-500">
-                      {dayjs().hour(hour).format("h A")}
-                    </Text>
-                    <View className="flex-1 border-t border-neutral-800" />
-                  </View>
+          <Pressable style={{ flex: 1, position: "relative" }} onLongPress={handleLongPress}>
+            {Array.from({ length: 24 }).map((_, hour) => (
+              <View
+                key={hour}
+                style={{
+                  position: "absolute",
+                  top: hour * HOUR_HEIGHT,
+                  left: 0,
+                  right: 0,
+                  height: HOUR_HEIGHT,
+                }}
+              >
+                <View className="flex-row h-full">
+                  <Text className="w-12 pr-2 text-right text-gray-500">
+                    {dayjs().hour(hour).format("h A")}
+                  </Text>
+                  <View className="flex-1 border-t border-neutral-800" />
                 </View>
-              ))}
+              </View>
+            ))}
 
-              {items.map((item) => {
-                const isDragging = draggingId === item.id;
-                const top = minutesToTop(item.time) + (isDragging ? dragOffset : 0);
-                const responder = getResponder(item.id);
-                return (
-                  <View
-                    key={item.id}
-                    {...responder.panHandlers}
-                    className="absolute bg-neutral-900 rounded-xl"
-                    style={{ top, left: 56, right: 0 }}
+            {items.map((item) => {
+              const isDragging = draggingId === item.id;
+              const top = minutesToTop(item.time) + (isDragging ? dragOffset : 0);
+              const responder = getResponder(item.id);
+              return (
+                <View
+                  key={item.id}
+                  {...responder.panHandlers}
+                  className="absolute bg-neutral-900 rounded-xl"
+                  style={{ top, left: 56, right: 0 }}
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    delayLongPress={500}
+                    onLongPress={(e) => {
+                      e.stopPropagation();
+                      setDraggingId(item.id);
+                      setDragOffset(0);
+                      setScrollEnabled(false);
+                    }}
+                    onPress={() =>
+                      navigation.navigate("ScheduleDetails", {
+                        item: { ...item, time: item.time.toISOString() },
+                        onUpdate: updateItem,
+                        onDelete: deleteItem,
+                        onCancelNew: deleteItem,
+                        isNew: false,
+                      })
+                    }
+                    className="p-3"
                   >
-                    <TouchableOpacity
-                      activeOpacity={0.9}
-                      delayLongPress={500}
-                      onLongPress={() => {
-                        setDraggingId(item.id);
-                        setDragOffset(0);
-                        setScrollEnabled(false);
-                      }}
-                      onPress={() =>
-                        navigation.navigate("ScheduleDetails", {
-                          item,
-                          onUpdate: updateItem,
-                          onDelete: deleteItem,
-                          onCancelNew: deleteItem,
-                          isNew: false,
-                        })
-                      }
-                      className="p-3"
-                    >
-                      <Text className="text-white font-semibold">{item.title}</Text>
-                    </TouchableOpacity>
-                  </View>
-                );
-              })}
-            </View>
-          </LongPressGestureHandler>
+                    <Text className="text-white font-semibold">{item.title}</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </Pressable>
         </ScrollView>
       </View>
     </SafeAreaView>

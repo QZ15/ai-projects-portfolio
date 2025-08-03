@@ -77,6 +77,8 @@ export default function ScheduleDetailsScreen({ route, navigation }) {
           onConfirm={handleConfirm}
           onCancel={() => setShowPicker(false)}
           isDarkModeEnabled
+          minimumDate={new Date(0)}
+          is24Hour
         />
 
         {item.type !== "event" && (
