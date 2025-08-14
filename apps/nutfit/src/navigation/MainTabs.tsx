@@ -3,14 +3,14 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 
-// Screens
+// Screens / Navigators
 import DashboardScreen from "../screens/DashboardScreen";
 import Scheduler from "../screens/Scheduler";
 import ScheduleDetailsScreen from "../screens/ScheduleDetailsScreen";
 import ScheduleSettings from "../screens/ScheduleSettings";
-import SettingsScreen from "../screens/SettingsScreen";
 import MealStackNavigator from "./MealStackNavigator";
 import WorkoutStackNavigator from "./WorkoutStackNavigator";
+import SettingsNavigator from "./SettingsNavigator";
 
 // Lazy screens
 const Progress = lazy(() => import("../screens/Progress"));
@@ -83,7 +83,7 @@ export default function MainTabs() {
         component={ProgressStackNavigator}
         options={{ title: "Progress" }}
       />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
+      <Tab.Screen name="Settings" component={SettingsNavigator} />
     </Tab.Navigator>
   );
 }
