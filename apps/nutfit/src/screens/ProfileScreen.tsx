@@ -27,7 +27,13 @@ export default function ProfileScreen() {
 
   // Populate fields when profile loads/changes
   useEffect(() => {
-    if (!profile) return;
+    if (!profile) {
+      setName("");
+      setWeight("");
+      setBodyFat("");
+      setGoal("");
+      return;
+    }
     setName(profile.name ?? "");
     setWeight(
       profile.weightLbs !== undefined && profile.weightLbs !== null

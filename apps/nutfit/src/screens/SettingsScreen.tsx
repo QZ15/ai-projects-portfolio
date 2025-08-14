@@ -13,7 +13,8 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { signOut } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { auth, db } from "../services/firebase";
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
@@ -25,11 +26,9 @@ const NOTIF_ENABLED_KEY = "@nutfit:reminder:enabled";
 const NOTIF_TIME_KEY    = "@nutfit:reminder:time";
 const NOTIF_ID_KEY      = "@nutfit:reminder:id";
 
-const PROGRESS_KEYS = [
-  "@nutfit:progress:entries",
-  "@nutfit:progress:heightInInches",
-  "@nutfit:progress:prefs",
-  "weightEntries",
+const progressKeys = (uid: string) => [
+  `@nutfit:${uid}:progress:entries`,
+  `@nutfit:${uid}:progress:heightInInches`,
 ];
 
 function toHHmm(d: Date) {
@@ -139,16 +138,22 @@ export default function SettingsScreen() {
   const clearProgressData = async () => {
     Alert.alert(
       "Clear Progress Data",
-      "This will delete your logged entries and preferences on this device.",
+      "This will delete your logged entries from this device and the cloud.",
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
+            const uid = auth.currentUser?.uid;
+            if (!uid) return;
             try {
-              await Promise.all(PROGRESS_KEYS.map((k) => AsyncStorage.removeItem(k)));
-              Alert.alert("Cleared", "Progress data removed from this device.");
+              await Promise.all(progressKeys(uid).map((k) => AsyncStorage.removeItem(k)));
+              const colRef = collection(db, "users", uid, "progress");
+              const docs = await getDocs(colRef);
+              await Promise.all(docs.docs.map((d) => deleteDoc(d.ref)));
+              await deleteDoc(doc(db, "users", uid, "progressMeta", "settings"));
+              Alert.alert("Cleared", "Progress data removed for this account.");
             } catch {
               Alert.alert("Error", "Could not clear data. Try again.");
             }
