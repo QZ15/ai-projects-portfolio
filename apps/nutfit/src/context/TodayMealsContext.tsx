@@ -5,10 +5,14 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import dayjs from "dayjs";
 import pluralize from "pluralize";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, onSnapshot, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../services/firebase";
 
 type TodayMeal = any & { completed?: boolean }; // preserve loose typing across app
 
@@ -21,63 +25,118 @@ export const TodayMealsProvider = ({ children }: { children: React.ReactNode }) 
   const [pantryItems, setPantryItems] = useState<string[]>([]);
   const [extraItems, setExtraItems] = useState<{ name: string; amount: number; unit: string }[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const uidRef = useRef<string | null>(auth.currentUser?.uid ?? null);
+  const skipSave = useRef(false);
 
-  /* ─────────────── load saved state ─────────────── */
+  const keyFor = (uid: string, k: string) => `@nutfit:${uid}:${k}`;
+
   useEffect(() => {
-    const loadData = async () => {
-      const saved = await AsyncStorage.getItem("todayMeals");
-      const date = await AsyncStorage.getItem("lastReset");
-      const purchased = await AsyncStorage.getItem("purchasedItems");
-      const pantry = await AsyncStorage.getItem("pantryItems");
-      const extras = await AsyncStorage.getItem("extraGroceries");
+    let unsubFs: (() => void) | undefined;
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
+      if (unsubFs) unsubFs();
+      uidRef.current = user?.uid || null;
+      setTodayMeals([]);
+      setLastReset("");
+      setPurchasedItems({});
+      setPantryItems([]);
+      setExtraItems([]);
+      setInitialized(false);
 
-      if (date) {
-        setLastReset(date);
-        if (saved && date === dayjs().format("YYYY-MM-DD")) {
-          try {
-            const parsed: TodayMeal[] = JSON.parse(saved);
-            // ensure completed defaults to false for older entries
-            setTodayMeals(parsed.map(m => ({ completed: false, ...m })));
-          } catch {
-            setTodayMeals([]);
+      if (!user) return;
+      const uid = user.uid;
+      const prefix = (k: string) => keyFor(uid, k);
+      const ref = doc(db, "users", uid, "todayMeals", "state");
+
+      // load cached data
+      try {
+        const [saved, date, purchased, pantry, extras] = await Promise.all([
+          AsyncStorage.getItem(prefix("todayMeals")),
+          AsyncStorage.getItem(prefix("lastReset")),
+          AsyncStorage.getItem(prefix("purchasedItems")),
+          AsyncStorage.getItem(prefix("pantryItems")),
+          AsyncStorage.getItem(prefix("extraGroceries")),
+        ]);
+        if (date) {
+          setLastReset(date);
+          if (saved && date === dayjs().format("YYYY-MM-DD")) {
+            try {
+              const parsed: TodayMeal[] = JSON.parse(saved);
+              setTodayMeals(parsed.map(m => ({ completed: false, ...m })));
+            } catch {}
           }
+        }
+        if (purchased) { try { setPurchasedItems(JSON.parse(purchased)); } catch {} }
+        if (pantry) { try { setPantryItems(JSON.parse(pantry)); } catch {} }
+        if (extras) { try { setExtraItems(JSON.parse(extras)); } catch {} }
+      } catch {}
+      setInitialized(true);
+
+      // migrate legacy data if Firestore empty
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        const legacyKeys = ["todayMeals","lastReset","purchasedItems","pantryItems","extraGroceries"];
+        const legacy = await Promise.all(legacyKeys.map(k => AsyncStorage.getItem(k)));
+        if (legacy.some(v => v)) {
+          await setDoc(ref, {
+            todayMeals: legacy[0] ? JSON.parse(legacy[0]!) : [],
+            lastReset: legacy[1] || dayjs().format("YYYY-MM-DD"),
+            purchasedItems: legacy[2] ? JSON.parse(legacy[2]!) : {},
+            pantryItems: legacy[3] ? JSON.parse(legacy[3]!) : [],
+            extraItems: legacy[4] ? JSON.parse(legacy[4]!) : [],
+            updatedAt: serverTimestamp(),
+          });
+          await Promise.all(legacyKeys.map(k => AsyncStorage.removeItem(k)));
         }
       }
 
-      if (purchased) {
-        try { setPurchasedItems(JSON.parse(purchased)); } catch { setPurchasedItems({}); }
-      }
-
-      if (pantry) {
-        try { setPantryItems(JSON.parse(pantry)); } catch { setPantryItems([]); }
-      }
-
-      if (extras) {
-        try { setExtraItems(JSON.parse(extras)); } catch { setExtraItems([]); }
-      }
-
-      setInitialized(true);
+      unsubFs = onSnapshot(ref, (snapshot) => {
+        const data = snapshot.data();
+        if (data) {
+          skipSave.current = true;
+          setLastReset(data.lastReset || "");
+          setTodayMeals((data.todayMeals || []).map((m: any) => ({ completed: false, ...m })));
+          setPurchasedItems(data.purchasedItems || {});
+          setPantryItems(data.pantryItems || []);
+          setExtraItems(data.extraItems || []);
+          AsyncStorage.setItem(prefix("lastReset"), data.lastReset || "");
+          AsyncStorage.setItem(prefix("todayMeals"), JSON.stringify(data.todayMeals || []));
+          AsyncStorage.setItem(prefix("purchasedItems"), JSON.stringify(data.purchasedItems || {}));
+          AsyncStorage.setItem(prefix("pantryItems"), JSON.stringify(data.pantryItems || []));
+          AsyncStorage.setItem(prefix("extraGroceries"), JSON.stringify(data.extraItems || []));
+        }
+      });
+    });
+    return () => {
+      if (unsubFs) unsubFs();
+      unsubAuth();
     };
-
-    loadData();
   }, []);
 
-  /* ─────────────── persist meals + daily reset ─────────────── */
   useEffect(() => {
-    if (!initialized) return;
+    const uid = uidRef.current;
+    if (!uid || !initialized) return;
     const now = dayjs().format("YYYY-MM-DD");
     if (lastReset !== now) {
       setTodayMeals([]);
       setLastReset(now);
-      AsyncStorage.setItem("lastReset", now);
     }
-    AsyncStorage.setItem("todayMeals", JSON.stringify(todayMeals));
-  }, [todayMeals, lastReset, initialized]);
-
-  /* ─────────────── persist other state ─────────────── */
-  useEffect(() => { if (initialized) AsyncStorage.setItem("purchasedItems", JSON.stringify(purchasedItems)); }, [purchasedItems, initialized]);
-  useEffect(() => { if (initialized) AsyncStorage.setItem("pantryItems", JSON.stringify(pantryItems)); }, [pantryItems, initialized]);
-  useEffect(() => { if (initialized) AsyncStorage.setItem("extraGroceries", JSON.stringify(extraItems)); }, [extraItems, initialized]);
+    if (skipSave.current) { skipSave.current = false; return; }
+    const ref = doc(db, "users", uid, "todayMeals", "state");
+    setDoc(ref, {
+      todayMeals,
+      lastReset,
+      purchasedItems,
+      pantryItems,
+      extraItems,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+    const prefix = (k: string) => keyFor(uid, k);
+    AsyncStorage.setItem(prefix("todayMeals"), JSON.stringify(todayMeals));
+    AsyncStorage.setItem(prefix("lastReset"), lastReset);
+    AsyncStorage.setItem(prefix("purchasedItems"), JSON.stringify(purchasedItems));
+    AsyncStorage.setItem(prefix("pantryItems"), JSON.stringify(pantryItems));
+    AsyncStorage.setItem(prefix("extraGroceries"), JSON.stringify(extraItems));
+  }, [todayMeals, lastReset, purchasedItems, pantryItems, extraItems, initialized]);
 
   /* ─────────────── meals add/remove (preserving API) ─────────────── */
   const addToToday = (meal: TodayMeal) => {
