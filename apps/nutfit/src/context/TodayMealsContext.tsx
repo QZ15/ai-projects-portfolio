@@ -10,16 +10,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import dayjs from "dayjs";
 import pluralize from "pluralize";
 
-const TodayMealsContext = createContext(null);
+type TodayMeal = any & { completed?: boolean }; // preserve loose typing across app
 
-export const TodayMealsProvider = ({ children }) => {
-  const [todayMeals, setTodayMeals] = useState<any[]>([]);
+const TodayMealsContext = createContext<any>(null);
+
+export const TodayMealsProvider = ({ children }: { children: React.ReactNode }) => {
+  const [todayMeals, setTodayMeals] = useState<TodayMeal[]>([]);
   const [lastReset, setLastReset] = useState<string>("");
   const [purchasedItems, setPurchasedItems] = useState<Record<string, boolean>>({});
   const [pantryItems, setPantryItems] = useState<string[]>([]);
   const [extraItems, setExtraItems] = useState<{ name: string; amount: number; unit: string }[]>([]);
   const [initialized, setInitialized] = useState(false);
 
+  /* ─────────────── load saved state ─────────────── */
   useEffect(() => {
     const loadData = async () => {
       const saved = await AsyncStorage.getItem("todayMeals");
@@ -31,32 +34,26 @@ export const TodayMealsProvider = ({ children }) => {
       if (date) {
         setLastReset(date);
         if (saved && date === dayjs().format("YYYY-MM-DD")) {
-          setTodayMeals(JSON.parse(saved));
+          try {
+            const parsed: TodayMeal[] = JSON.parse(saved);
+            // ensure completed defaults to false for older entries
+            setTodayMeals(parsed.map(m => ({ completed: false, ...m })));
+          } catch {
+            setTodayMeals([]);
+          }
         }
       }
 
       if (purchased) {
-        try {
-          setPurchasedItems(JSON.parse(purchased));
-        } catch {
-          setPurchasedItems({});
-        }
+        try { setPurchasedItems(JSON.parse(purchased)); } catch { setPurchasedItems({}); }
       }
 
       if (pantry) {
-        try {
-          setPantryItems(JSON.parse(pantry));
-        } catch {
-          setPantryItems([]);
-        }
+        try { setPantryItems(JSON.parse(pantry)); } catch { setPantryItems([]); }
       }
 
       if (extras) {
-        try {
-          setExtraItems(JSON.parse(extras));
-        } catch {
-          setExtraItems([]);
-        }
+        try { setExtraItems(JSON.parse(extras)); } catch { setExtraItems([]); }
       }
 
       setInitialized(true);
@@ -65,6 +62,7 @@ export const TodayMealsProvider = ({ children }) => {
     loadData();
   }, []);
 
+  /* ─────────────── persist meals + daily reset ─────────────── */
   useEffect(() => {
     if (!initialized) return;
     const now = dayjs().format("YYYY-MM-DD");
@@ -76,36 +74,46 @@ export const TodayMealsProvider = ({ children }) => {
     AsyncStorage.setItem("todayMeals", JSON.stringify(todayMeals));
   }, [todayMeals, lastReset, initialized]);
 
-  useEffect(() => {
-    if (initialized) {
-      AsyncStorage.setItem("purchasedItems", JSON.stringify(purchasedItems));
-    }
-  }, [purchasedItems, initialized]);
+  /* ─────────────── persist other state ─────────────── */
+  useEffect(() => { if (initialized) AsyncStorage.setItem("purchasedItems", JSON.stringify(purchasedItems)); }, [purchasedItems, initialized]);
+  useEffect(() => { if (initialized) AsyncStorage.setItem("pantryItems", JSON.stringify(pantryItems)); }, [pantryItems, initialized]);
+  useEffect(() => { if (initialized) AsyncStorage.setItem("extraGroceries", JSON.stringify(extraItems)); }, [extraItems, initialized]);
 
-  useEffect(() => {
-    if (initialized) {
-      AsyncStorage.setItem("pantryItems", JSON.stringify(pantryItems));
-    }
-  }, [pantryItems, initialized]);
-
-  useEffect(() => {
-    if (initialized) {
-      AsyncStorage.setItem("extraGroceries", JSON.stringify(extraItems));
-    }
-  }, [extraItems, initialized]);
-
-  const addToToday = (meal: any) => {
-    setTodayMeals((prev) => {
+  /* ─────────────── meals add/remove (preserving API) ─────────────── */
+  const addToToday = (meal: TodayMeal) => {
+    setTodayMeals(prev => {
       if (prev.find((m) => m.name === meal.name)) return prev;
-      return [...prev, meal];
+      const next = [...prev, { completed: meal.completed ?? false, ...meal }];
+      return next;
     });
   };
 
-  const removeFromToday = (meal: any) => {
-    setTodayMeals((prev) => prev.filter((m) => m.name !== meal.name));
+  const removeFromToday = (meal: TodayMeal) => {
+    setTodayMeals(prev => prev.filter((m) => m.name !== meal.name));
   };
 
-  const normalizeName = (n: string) => pluralize.singular(n.trim().toLowerCase());
+  /* ─────────────── completion helpers (NEW) ─────────────── */
+  const setCompletedByName = (name: string, value: boolean | "toggle") => {
+    setTodayMeals(prev =>
+      prev.map(m =>
+        m.name === name
+          ? { ...m, completed: value === "toggle" ? !m.completed : value }
+          : m
+      )
+    );
+  };
+
+  const markCompleted = (name: string) => setCompletedByName(name, true);
+  const markIncomplete = (name: string) => setCompletedByName(name, false);
+  const toggleCompleted = (name: string) => setCompletedByName(name, "toggle");
+  const isCompleted = (nameOrMeal: string | TodayMeal) => {
+    const name = typeof nameOrMeal === "string" ? nameOrMeal : nameOrMeal?.name;
+    const found = todayMeals.find(m => m.name === name);
+    return !!found?.completed;
+  };
+
+  /* ─────────────── grocery helpers (unchanged) ─────────────── */
+  const normalizeName = (n: string) => pluralize.singular(String(n || "").trim().toLowerCase());
 
   const parseIngredient = (ing: any) => {
     let name = "";
@@ -132,11 +140,11 @@ export const TodayMealsProvider = ({ children }) => {
 
   const getGroup = (name: string) => {
     const groups = [
-      { group: "Produce", keywords: ["apple", "banana", "orange", "lettuce", "spinach", "kale", "carrot", "broccoli", "cucumber", "tomato", "onion", "pepper", "garlic", "potato", "avocado", "berry", "grape", "pear", "celery", "cabbage", "mushroom"] },
-      { group: "Meat & Seafood", keywords: ["chicken", "beef", "pork", "lamb", "turkey", "fish", "salmon", "tuna", "shrimp", "crab", "lobster", "ham", "bacon", "sausage"] },
-      { group: "Dairy", keywords: ["milk", "cheese", "butter", "yogurt", "cream", "egg"] },
-      { group: "Bakery", keywords: ["bread", "bagel", "bun", "roll", "cake", "cookie", "muffin", "tortilla"] },
-      { group: "Frozen Foods", keywords: ["frozen", "ice cream", "nugget", "pizza", "popsicle"] },
+      { group: "Produce", keywords: ["apple","banana","orange","lettuce","spinach","kale","carrot","broccoli","cucumber","tomato","onion","pepper","garlic","potato","avocado","berry","grape","pear","celery","cabbage","mushroom"] },
+      { group: "Meat & Seafood", keywords: ["chicken","beef","pork","lamb","turkey","fish","salmon","tuna","shrimp","crab","lobster","ham","bacon","sausage"] },
+      { group: "Dairy", keywords: ["milk","cheese","butter","yogurt","cream","egg"] },
+      { group: "Bakery", keywords: ["bread","bagel","bun","roll","cake","cookie","muffin","tortilla"] },
+      { group: "Frozen Foods", keywords: ["frozen","ice cream","nugget","pizza","popsicle"] },
     ];
     const found = groups.find((g) => g.keywords.some((k) => name.includes(k)));
     return found ? found.group : "Grocery";
@@ -197,9 +205,7 @@ export const TodayMealsProvider = ({ children }) => {
     });
   };
 
-  const clearPurchased = () => {
-    setPurchasedItems({});
-  };
+  const clearPurchased = () => setPurchasedItems({});
 
   const addPantryItem = (name: string) => {
     const base = normalizeName(name);
@@ -224,6 +230,7 @@ export const TodayMealsProvider = ({ children }) => {
   return (
     <TodayMealsContext.Provider
       value={{
+        /* existing */
         todayMeals,
         addToToday,
         removeFromToday,
@@ -239,6 +246,11 @@ export const TodayMealsProvider = ({ children }) => {
         purchasedItems,
         togglePurchased,
         clearPurchased,
+        /* new completion helpers */
+        markCompleted,
+        markIncomplete,
+        toggleCompleted,
+        isCompleted,
       }}
     >
       {children}

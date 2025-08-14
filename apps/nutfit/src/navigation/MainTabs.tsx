@@ -1,9 +1,9 @@
+// src/navigation/MainTabs.tsx
 import React, { lazy, Suspense } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 
-// Screens / Navigators
 import DashboardScreen from "../screens/DashboardScreen";
 import Scheduler from "../screens/Scheduler";
 import ScheduleDetailsScreen from "../screens/ScheduleDetailsScreen";
@@ -12,16 +12,14 @@ import MealStackNavigator from "./MealStackNavigator";
 import WorkoutStackNavigator from "./WorkoutStackNavigator";
 import SettingsNavigator from "./SettingsNavigator";
 
-// Lazy screens
+// Lazy
 const Progress = lazy(() => import("../screens/Progress"));
 const ProgressSettings = lazy(() => import("../screens/ProgressSettings"));
 
-// Navigators
 const Tab = createBottomTabNavigator();
 const ScheduleStack = createNativeStackNavigator();
 const ProgressStack = createNativeStackNavigator();
 
-// --- Schedule Stack ---
 function ScheduleStackNavigator() {
   return (
     <ScheduleStack.Navigator screenOptions={{ headerShown: false }}>
@@ -32,7 +30,6 @@ function ScheduleStackNavigator() {
   );
 }
 
-// --- Progress Stack ---
 function ProgressStackNavigator() {
   return (
     <ProgressStack.Navigator screenOptions={{ headerShown: false }}>
@@ -76,7 +73,16 @@ export default function MainTabs() {
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Meals" component={MealStackNavigator} />
-      <Tab.Screen name="Workouts" component={WorkoutStackNavigator} />
+      <Tab.Screen
+        name="Workouts"
+        component={WorkoutStackNavigator}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            // Always reset to the root of the Workouts stack when the tab is tapped
+            navigation.navigate("Workouts", { screen: "WorkoutPlanner" });
+          },
+        })}
+      />
       <Tab.Screen name="Schedule" component={ScheduleStackNavigator} />
       <Tab.Screen
         name="Progress"
