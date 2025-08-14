@@ -1,0 +1,8 @@
+node_modules
+functions/dist
+apps/*/node_modules
+apps/glaze/**
+apps/portfolio/**
+dist
+build
+coverage
