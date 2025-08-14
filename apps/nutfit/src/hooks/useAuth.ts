@@ -1,25 +1,34 @@
-import { useEffect, useState } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../services/firebase';
+// src/hooks/useAuth.ts
+import { useEffect, useState } from "react";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "../services/firebase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingAuth, setLoadingAuth] = useState(true);
   const [onboarded, setOnboarded] = useState(false);
+  const [loadingOnboard, setLoadingOnboard] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
+    const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
-      if (u) {
-        const ref = doc(db, 'users', u.uid);
-        const snap = await getDoc(ref);
-        setOnboarded(snap.exists());
-      }
-      setLoading(false);
+      setLoadingAuth(false);
     });
     return unsub;
   }, []);
 
-  return { user, loading, onboarded };
+  useEffect(() => {
+    (async () => {
+      const v = await AsyncStorage.getItem("hasOnboarded");
+      setOnboarded(v === "true");
+      setLoadingOnboard(false);
+    })();
+  }, []);
+
+  return {
+    user,
+    loading: loadingAuth || loadingOnboard,
+    onboarded, // device-level flag
+  };
 }

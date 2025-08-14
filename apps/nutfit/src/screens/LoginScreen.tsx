@@ -1,127 +1,99 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
+// src/screens/LoginScreen.tsx
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { OnboardingStackParamList } from "../navigation/OnboardingNavigator";
 import { auth } from "../services/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import useAuth from "../hooks/useAuth";
-import { navigate as rootNavigate } from "../navigation/RootNavigation";
 
 type LoginProps = NativeStackScreenProps<OnboardingStackParamList, "Login">;
 
-export default function LoginScreen({ navigation }: LoginProps) {
+export default function LoginScreen({}: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { user, onboarded } = useAuth();
-
-  // Inside useEffect:
-  useEffect(() => {
-    console.log("🔍 useAuth user state changed:", user?.uid || "No user");
-    if (user && onboarded) {
-      Alert.alert("✅ Login Success", `Welcome ${user.email}`);
-      console.log("🔄 Navigating to MainTabs (via RootNavigation)...");
-      rootNavigate("Main");
-    }
-  }, [user, onboarded]);
+  useAuth(); // keep auth state live; RootNavigator handles routing
 
   const handleAuth = async () => {
     try {
       setLoading(true);
-      console.log(isSignup ? "📌 Signing up user..." : "📌 Logging in user...");
       if (isSignup) {
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
+      // No popups, no manual navigation
     } catch (e: any) {
-      console.error("❌ Auth error:", e.message);
-      setError(e.message);
+      setError(e?.message || "Authentication error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{isSignup ? "Create Account" : "Welcome Back"}</Text>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+    <SafeAreaView className="flex-1 bg-black">
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+          <View className="mt-16 mb-8 items-center">
+            <Text className="text-white text-[28px] font-bold">
+              {isSignup ? "Create Account" : "Welcome Back"}
+            </Text>
+            <Text className="text-gray-400 mt-2">
+              {isSignup ? "Sign up to get started" : "Log in to continue"}
+            </Text>
+          </View>
 
-      <TextInput
-        placeholder="Email"
-        placeholderTextColor="#9CA3AF"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Password"
-        placeholderTextColor="#9CA3AF"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        style={styles.input}
-      />
+          {!!error && (
+            <View className="bg-red-900/30 border border-red-700 rounded-2xl px-4 py-3 mb-4">
+              <Text className="text-red-300 text-sm">{error}</Text>
+            </View>
+          )}
 
-      <TouchableOpacity style={styles.button} onPress={handleAuth} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{isSignup ? "Sign Up" : "Log In"}</Text>}
-      </TouchableOpacity>
+          <Text className="text-gray-400 text-sm mb-1">Email</Text>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="you@example.com"
+            placeholderTextColor="#6B7280"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            className="bg-neutral-900 p-4 rounded-2xl text-white mb-4 border border-neutral-800"
+          />
 
-      <TouchableOpacity onPress={() => setIsSignup(!isSignup)}>
-        <Text style={styles.switchText}>
-          {isSignup ? "Already have an account? Log In" : "Don’t have an account? Sign Up"}
-        </Text>
-      </TouchableOpacity>
-    </View>
+          <Text className="text-gray-400 text-sm mb-1">Password</Text>
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••"
+            placeholderTextColor="#6B7280"
+            secureTextEntry
+            className="bg-neutral-900 p-4 rounded-2xl text-white mb-6 border border-neutral-800"
+          />
+
+          <TouchableOpacity
+            onPress={handleAuth}
+            disabled={loading}
+            className="bg-blue-500 py-4 rounded-2xl items-center"
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-white font-semibold">
+                {isSignup ? "Sign Up" : "Log In"}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => setIsSignup((v) => !v)} className="mt-4">
+            <Text className="text-gray-400 text-center">
+              {isSignup ? "Already have an account? Log In" : "Don’t have an account? Sign Up"}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-    paddingHorizontal: 24,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 24,
-    textAlign: "center",
-  },
-  input: {
-    backgroundColor: "#1F2937",
-    color: "#fff",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#374151",
-  },
-  button: {
-    backgroundColor: "#3B82F6",
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 12,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  switchText: {
-    color: "#9CA3AF",
-    textAlign: "center",
-    marginTop: 12,
-  },
-  error: {
-    color: "red",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-});

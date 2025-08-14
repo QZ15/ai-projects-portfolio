@@ -130,7 +130,7 @@ export default function SettingsScreen() {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      navigation.reset({ index: 0, routes: [{ name: "Auth" as never }] });
+      // No manual reset; RootNavigator will switch to Auth when user becomes null.
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
@@ -186,10 +186,12 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={18} color="#6B7280" />
         </TouchableOpacity>
 
-        {/* Progress Settings */}
+        {/* Progress Settings (navigate into Progress tab's stack) */}
         <TouchableOpacity
           className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
-          onPress={() => navigation.navigate("ProgressSettings" as never)}
+          onPress={() =>
+            navigation.navigate("Progress" as never, { screen: "ProgressSettings" } as never)
+          }
         >
           <View className="flex-row items-center">
             <Ionicons name="stats-chart-outline" size={20} color="#fff" />
@@ -198,11 +200,10 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={18} color="#6B7280" />
         </TouchableOpacity>
 
-        {/* Schedule Settings (NEW) */}
+        {/* Schedule Settings (nested in Schedule tab) */}
         <TouchableOpacity
           className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
           onPress={() =>
-            // Navigate to nested stack screen in the Schedule tab
             navigation.navigate("Schedule" as never, { screen: "ScheduleSettings" } as never)
           }
         >
@@ -263,6 +264,18 @@ export default function SettingsScreen() {
             <Ionicons name="trash-outline" size={18} color="#EF4444" />
           </TouchableOpacity>
         </View>
+
+        {/* Reset Onboarding (dev) */}
+        <TouchableOpacity
+          className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
+          onPress={async () => { await AsyncStorage.removeItem("hasOnboarded"); }}
+        >
+          <View className="flex-row items-center">
+            <Ionicons name="refresh-outline" size={20} color="#fff" />
+            <Text className="text-white ml-3 font-semibold">Reset Onboarding (dev)</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+        </TouchableOpacity>
 
         {/* Help & Support */}
         <TouchableOpacity
