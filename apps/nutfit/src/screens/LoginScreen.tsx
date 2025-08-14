@@ -1,10 +1,23 @@
 // src/screens/LoginScreen.tsx
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { OnboardingStackParamList } from "../navigation/OnboardingNavigator";
 import { auth } from "../services/firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import useAuth from "../hooks/useAuth";
 
 type LoginProps = NativeStackScreenProps<OnboardingStackParamList, "Login">;
@@ -15,17 +28,17 @@ export default function LoginScreen({}: LoginProps) {
   const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  useAuth(); // keep auth state live; RootNavigator handles routing
+  useAuth(); // RootNavigator handles routing when auth state changes
 
   const handleAuth = async () => {
     try {
       setLoading(true);
       if (isSignup) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        await createUserWithEmailAndPassword(auth, email.trim(), password);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, email.trim(), password);
       }
-      // No popups, no manual navigation
+      // No manual navigation or popups
     } catch (e: any) {
       setError(e?.message || "Authentication error");
     } finally {
@@ -35,9 +48,16 @@ export default function LoginScreen({}: LoginProps) {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
-          <View className="mt-16 mb-8 items-center">
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          className="flex-1 px-5"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingBottom: 40 }}
+        >
+          <View className="items-center mb-8">
             <Text className="text-white text-[28px] font-bold">
               {isSignup ? "Create Account" : "Welcome Back"}
             </Text>
@@ -87,9 +107,14 @@ export default function LoginScreen({}: LoginProps) {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setIsSignup((v) => !v)} className="mt-4">
+          <TouchableOpacity
+            onPress={() => setIsSignup((v) => !v)}
+            className="mt-6"
+          >
             <Text className="text-gray-400 text-center">
-              {isSignup ? "Already have an account? Log In" : "Don’t have an account? Sign Up"}
+              {isSignup
+                ? "Already have an account? Log In"
+                : "Don’t have an account? Sign Up"}
             </Text>
           </TouchableOpacity>
         </ScrollView>
