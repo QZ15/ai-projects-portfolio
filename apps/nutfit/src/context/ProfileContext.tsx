@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth, db } from "../services/firebase";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
 export type Profile = {
@@ -144,12 +144,16 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       const uid = user.uid;
       const ref = doc(db, "users", uid);
       const next: Profile = { ...(profile ?? {}), ...patch, email: user.email ?? undefined };
-      await updateDoc(ref, {
-        name: next.name ?? null,
-        weight: next.weightLbs ?? null,   // lbs
-        bodyFat: next.bodyFatPct ?? null, // %
-        goal: next.goal ?? null,
-      });
+      await setDoc(
+        ref,
+        {
+          name: next.name ?? null,
+          weight: next.weightLbs ?? null,   // lbs
+          bodyFat: next.bodyFatPct ?? null, // %
+          goal: next.goal ?? null,
+        },
+        { merge: true }
+      );
       setProfile(next);
       await AsyncStorage.multiSet([
         [keyFor(uid, "name"), next.name ?? ""],
