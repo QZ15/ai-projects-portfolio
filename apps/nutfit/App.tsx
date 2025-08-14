@@ -11,6 +11,7 @@ import { WeekWorkoutsProvider } from "./src/context/WeekWorkoutsContext";
 import { RecentWorkoutsProvider } from "./src/context/RecentWorkoutsContext";
 import { CompletedWorkoutsProvider } from "./src/context/CompletedWorkoutsContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ProgressProvider } from "./src/context/ProgressContext";
 
 export default function App() {
   return (
@@ -25,7 +26,9 @@ export default function App() {
                     <MealOfTheDayProvider>
                       <RecentMealsProvider>
                         <RecentWorkoutsProvider>
-                          <RootNavigator />
+                          <ProgressProvider>
+                            <RootNavigator />
+                          </ProgressProvider>
                         </RecentWorkoutsProvider>
                       </RecentMealsProvider>
                     </MealOfTheDayProvider>

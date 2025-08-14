@@ -8,14 +8,18 @@ import DashboardScreen from "../screens/DashboardScreen";
 import Scheduler from "../screens/Scheduler";
 import ScheduleDetailsScreen from "../screens/ScheduleDetailsScreen";
 import ScheduleSettings from "../screens/ScheduleSettings";
-const Progress = lazy(() => import("../screens/Progress"));
 import SettingsScreen from "../screens/SettingsScreen";
 import MealStackNavigator from "./MealStackNavigator";
 import WorkoutStackNavigator from "./WorkoutStackNavigator";
 
+// Lazy screens
+const Progress = lazy(() => import("../screens/Progress"));
+const ProgressSettings = lazy(() => import("../screens/ProgressSettings"));
+
 // Navigators
 const Tab = createBottomTabNavigator();
 const ScheduleStack = createNativeStackNavigator();
+const ProgressStack = createNativeStackNavigator();
 
 // --- Schedule Stack ---
 function ScheduleStackNavigator() {
@@ -25,6 +29,28 @@ function ScheduleStackNavigator() {
       <ScheduleStack.Screen name="ScheduleDetails" component={ScheduleDetailsScreen} />
       <ScheduleStack.Screen name="ScheduleSettings" component={ScheduleSettings} />
     </ScheduleStack.Navigator>
+  );
+}
+
+// --- Progress Stack ---
+function ProgressStackNavigator() {
+  return (
+    <ProgressStack.Navigator screenOptions={{ headerShown: false }}>
+      <ProgressStack.Screen name="ProgressHome">
+        {() => (
+          <Suspense fallback={null}>
+            <Progress />
+          </Suspense>
+        )}
+      </ProgressStack.Screen>
+      <ProgressStack.Screen name="ProgressSettings">
+        {() => (
+          <Suspense fallback={null}>
+            <ProgressSettings />
+          </Suspense>
+        )}
+      </ProgressStack.Screen>
+    </ProgressStack.Navigator>
   );
 }
 
@@ -54,11 +80,8 @@ export default function MainTabs() {
       <Tab.Screen name="Schedule" component={ScheduleStackNavigator} />
       <Tab.Screen
         name="Progress"
-        children={() => (
-          <Suspense fallback={null}>
-            <Progress />
-          </Suspense>
-        )}
+        component={ProgressStackNavigator}
+        options={{ title: "Progress" }}
       />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>

@@ -10,6 +10,7 @@ import progressRoutes from "./routes/progressFeedback.js";
 // ✅ Import callable functions
 import { generateSingleMeal, generateMealPlan, generateRequestedMeal } from "./routes/mealFunctions.js";
 import { generateSingleWorkout, generateWorkoutPlan } from "./routes/workoutFunctions.js";
+import { generateProgressFeedback } from "./routes/progressFunctions.js";
 
 const app = express();
 
@@ -26,12 +27,13 @@ app.use("/api/edit-glaze", editGlazeRoutes);
 app.use("/api/generate-image", imageRoutes);
 app.use("/api/progress-feedback", progressRoutes);
 
-// ✅ Export callable meal functions with matching names
+// ✅ Export callable functions with matching names
 export const generateSingleMealFunction = generateSingleMeal;
 export const generateMealPlanFunction = generateMealPlan;
 export const generateRequestedMealFunction = generateRequestedMeal;
 export const generateSingleWorkoutFunction = generateSingleWorkout;
 export const generateWorkoutPlanFunction = generateWorkoutPlan;
+export const generateProgressFeedbackFunction = generateProgressFeedback;
 
 // ✅ Export Express API
 export const api = functions.https.onRequest(app);
