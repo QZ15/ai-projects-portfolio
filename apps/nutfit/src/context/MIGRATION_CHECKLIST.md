@@ -1,7 +1,7 @@
-# Remaining Context Firestore Migration
+# Context Firestore Migration
 
-- [ ] FavoritesContext
-- [ ] WeekWorkoutsContext
-- [ ] CompletedWorkoutsContext
-- [ ] RecentMealsContext
-- [ ] RecentWorkoutsContext
+- [x] FavoritesContext
+- [x] WeekWorkoutsContext
+- [x] CompletedWorkoutsContext
+- [x] RecentMealsContext
+- [x] RecentWorkoutsContext
