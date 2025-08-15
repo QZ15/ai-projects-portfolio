@@ -8,11 +8,11 @@ export default {
     extend: {
       colors: {
         ink: '#000000',
-        panel: '#171717',
-        accent: '#3b82f6'
+        panel: '#14181b',
+        accent: '#ffffff'
       },
       boxShadow: {
-        glow: '0 0 15px rgba(59, 130, 246, 0.4)'
+        glow: '0 0 15px rgba(255, 255, 255, 0.2)'
       }
     }
   },
