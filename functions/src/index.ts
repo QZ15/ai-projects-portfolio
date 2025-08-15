@@ -12,6 +12,9 @@ import { generateSingleMeal, generateMealPlan, generateRequestedMeal } from "./r
 import { generateSingleWorkout, generateWorkoutPlan } from "./routes/workoutFunctions.js";
 import { generateProgressFeedback } from "./routes/progressFunctions.js";
 import { createCheckoutSession } from "./stripe/checkout.js";
+import { createPortalSession } from "./stripe/portal.js";
+import { stripeWebhook } from "./stripe/webhook.js";
+import { setTesterAccess } from "./stripe/tester.js";
 
 const app = express();
 
@@ -36,6 +39,9 @@ export const generateSingleWorkoutFunction = generateSingleWorkout;
 export const generateWorkoutPlanFunction = generateWorkoutPlan;
 export const generateProgressFeedbackFunction = generateProgressFeedback;
 export const createCheckoutSessionFunction = createCheckoutSession;
+export const createPortalSessionFunction = createPortalSession;
+export const stripeWebhookFunction = stripeWebhook;
+export const setTesterAccessFunction = setTesterAccess;
 
 // ✅ Export Express API
 export const api = functions.https.onRequest(app);
