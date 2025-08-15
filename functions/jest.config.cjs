@@ -6,6 +6,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/../jest.setup.ts'],
   moduleNameMapper: {
     '^../services/openai.js$': '<rootDir>/src/services/openai.ts',
+    '^\.\/customers\.js$': '<rootDir>/src/stripe/customers.ts',
   },
   globals: {
     'ts-jest': {
