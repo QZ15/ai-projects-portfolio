@@ -234,7 +234,7 @@ export default function App() {
                         $7.99 / month
                       </div>
                       <div className="w-full rounded-md bg-white text-black px-4 py-2 font-medium text-center select-none">
-                        $59.88 / year
+                        $59.99 / year
                       </div>
                     </div>
                     <p className="mt-2 text-center text-xs text-gray-400">Purchase in app</p>
