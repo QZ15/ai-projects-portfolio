@@ -178,7 +178,7 @@ export default function App() {
                   </p>
                   <div className="mt-4 flex items-center gap-3">
                     <img
-                      src="/src/assets/images/testimonial.png"
+                      src="/src/assets/images/testimonial3.png"
                       alt="Daniel W."
                       className="rounded-full"
                       style={{height: '36px', width: '36px'}}
