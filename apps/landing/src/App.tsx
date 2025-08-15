@@ -11,7 +11,7 @@ export default function App() {
             <div className="mx-auto max-w-4xl h-full px-6 flex items-center justify-center">
               <div className="flex items-center">
                 <img
-                  src="/src/assets/images/logo.png"
+                  src="/landing/images/logo.png"
                   alt="NutFit logo"
                   className="block h-8 sm:h-8 w-auto max-w-full sm:-translate-y-[1px]"
                 />
@@ -31,7 +31,7 @@ export default function App() {
             <div
               className="
                 absolute inset-0
-                bg-[url('/src/assets/images/hero-bw.png')]
+                bg-[url('/landing/images/hero-bw.png')]
                 bg-no-repeat
                 bg-center
                 [background-size:100%_auto]
@@ -97,12 +97,12 @@ export default function App() {
                   <p className="mt-2 text-sm text-gray-300">iOS and Android coming soon.</p>
                   <div className="mt-10 mb-2 flex justify-center gap-2 flex-1 items-center">
                     <img
-                      src="/src/assets/images/app-store-badge.png"
+                      src="/landing/images/app-store-badge.png"
                       alt="Download on the App Store"
                       className="h-10 sm:h-10 w-auto max-w-full"
                     />
                     <img
-                      src="/src/assets/images/google-play-badge.png"
+                      src="/landing/images/google-play-badge.png"
                       alt="Get it on Google Play"
                       className="h-10 sm:h-10 w-auto max-w-full"
                     />
@@ -123,7 +123,7 @@ export default function App() {
                   </p>
                   <div className="mt-4 flex items-center gap-3">
                     <img
-                      src="/src/assets/images/testimonial2.png"
+                      src="/landing/images/testimonial2.png"
                       alt="Ava R."
                       className="h- nine w- nine rounded-full bg-white/10"
                       style={{height: '36px', width: '36px'}}
@@ -142,7 +142,7 @@ export default function App() {
                   </p>
                   <div className="mt-4 flex items-center gap-3">
                     <img
-                      src="/src/assets/images/testimonial1.png"
+                      src="/landing/images/testimonial1.png"
                       alt="Marcus T."
                       className="rounded-full"
                       style={{height: '36px', width: '36px'}}
@@ -160,7 +160,7 @@ export default function App() {
                   </p>
                   <div className="mt-4 flex items-center gap-3">
                     <img
-                      src="/src/assets/images/testimonial4.png"
+                      src="/landing/images/testimonial4.png"
                       alt="Lena S."
                       className="rounded-full"
                       style={{height: '36px', width: '36px'}}
@@ -178,7 +178,7 @@ export default function App() {
                   </p>
                   <div className="mt-4 flex items-center gap-3">
                     <img
-                      src="/src/assets/images/testimonial3.png"
+                      src="/landing/images/testimonial3.png"
                       alt="Daniel W."
                       className="rounded-full"
                       style={{height: '36px', width: '36px'}}
@@ -250,7 +250,7 @@ export default function App() {
               <div className="mt-4 flex-1">
                 <div className="flex items-center">
                   <img
-                    src="/src/assets/images/logo.png"
+                    src="/landing/images/logo.png"
                     alt="NutFit logo"
                     className="block h-8 sm:h-8 w-auto max-w-full sm:-translate-y-[1px]"
                   />
