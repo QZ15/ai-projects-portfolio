@@ -7,12 +7,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#0b0e11',
-        panel: '#14181b',
-        accent: '#7dd3fc'
+        ink: '#000000',
+        panel: '#171717',
+        accent: '#3b82f6'
       },
       boxShadow: {
-        glow: '0 0 15px rgba(125, 211, 252, 0.4)'
+        glow: '0 0 15px rgba(59, 130, 246, 0.4)'
       }
     }
   },
