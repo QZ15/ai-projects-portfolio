@@ -20,7 +20,7 @@ app.use("/api/generate-glaze", glazeRoutes);
 app.use("/api/edit-glaze", editGlazeRoutes);
 app.use("/api/generate-image", imageRoutes);
 app.use("/api/progress-feedback", progressRoutes);
-// ✅ Export callable meal functions with matching names
+// ✅ Export callable functions with matching names
 export const generateSingleMealFunction = generateSingleMeal;
 export const generateMealPlanFunction = generateMealPlan;
 export const generateRequestedMealFunction = generateRequestedMeal;
