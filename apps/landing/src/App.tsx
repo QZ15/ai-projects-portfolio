@@ -247,7 +247,7 @@ export default function App() {
           {/* Footer (NutFit only, aligned) */}
           <footer className="bg-white/[0.03] px-6 py-8 border-t border-white/10">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-              <div className="flex-1">
+              <div className="mt-4 flex-1">
                 <div className="flex items-center">
                   <img
                     src="/src/assets/images/logo.png"
