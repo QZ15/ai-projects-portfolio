@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import LineChartCard from "../components/progress/LineChartCard";
 import { useProgress } from "../context/ProgressContext";
 import { getProgressFeedback } from "../services/progressService";
+import { useSubscription } from "../hooks/useSubscription";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -78,6 +79,7 @@ export default function Progress() {
     heightInInches,
     setHeightInInches,
   } = useProgress();
+  const sub = useSubscription();
 
   // ── prefs (from settings)
   const [prefs, setPrefs] = useState<ProgressPrefs>({
@@ -271,6 +273,10 @@ export default function Progress() {
   };
 
   const handleGetFeedback = async () => {
+    if (!sub?.effectivePremium) {
+      nav.navigate("Settings" as never, { screen: "Subscription" } as never);
+      return;
+    }
     setLoadingFeedback(true);
     try {
       const res = await getProgressFeedback(weightData, 30);
@@ -394,7 +400,11 @@ export default function Progress() {
               <View className="flex-row items-center">
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color="#fff" />
                 <Text className="text-white ml-2 font-semibold">
-                  {loadingFeedback ? "Generating..." : "AI Progress Feedback"}
+                  {loadingFeedback
+                    ? "Generating..."
+                    : sub?.effectivePremium
+                    ? "AI Progress Feedback"
+                    : "Upgrade for AI Feedback"}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#6B7280" />

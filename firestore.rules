@@ -9,6 +9,11 @@ service cloud.firestore {
         !("subscription" in request.resource.data) &&
         !("updatedAt" in request.resource.data) &&
         !("isTester" in request.resource.data);
+
+      // allow user access to subcollections under their document
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }
