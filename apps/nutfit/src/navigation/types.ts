@@ -5,6 +5,10 @@ export type RootStackParamList = {
   Main: undefined;
   /** Fallback for unknown routes */
   NotFound: undefined;
+  /** Stripe checkout success redirect */
+  CheckoutSuccess: undefined;
+  /** Stripe checkout cancel redirect */
+  CheckoutCanceled: undefined;
 };
 
 

@@ -20,7 +20,9 @@
     "start:portfolio:backend": "cd apps/portfolio/backend && npm start",
     "lint": "eslint apps/nutfit/src/utils functions/src/routes/progressFunctions.ts functions/src/routes/progressFunctions.test.ts apps/nutfit/src/utils/format.test.ts",
     "lint:fix": "eslint apps/nutfit/src/utils functions/src/routes/progressFunctions.ts functions/src/routes/progressFunctions.test.ts apps/nutfit/src/utils/format.test.ts --fix",
-    "test": "jest"
+    "test": "jest",
+    "emulators": "firebase emulators:start",
+    "functions:serve": "npm --prefix functions run serve"
   },
   "keywords": [],
   "author": "",

@@ -191,6 +191,18 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={18} color="#6B7280" />
         </TouchableOpacity>
 
+        {/* Subscription */}
+        <TouchableOpacity
+          className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
+          onPress={() => navigation.navigate("Subscription" as never)}
+        >
+          <View className="flex-row items-center">
+            <Ionicons name="card-outline" size={20} color="#fff" />
+            <Text className="text-white ml-3 font-semibold">Subscription & Billing</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+        </TouchableOpacity>
+
         {/* Progress Settings (navigate into Progress tab's stack) */}
         <TouchableOpacity
           className="bg-neutral-900 p-4 rounded-2xl flex-row justify-between items-center mb-3"
