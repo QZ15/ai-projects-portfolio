@@ -1,5 +1,6 @@
 // functions/src/routes/progressFunctions.ts
 import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
 import openai from "../services/openai.js";
 
 type Entry = { date: string; weight: number };
@@ -17,7 +18,14 @@ function clampWindow(entries: Entry[], windowDays: number) {
   return entries.filter(e => new Date(e.date).getTime() >= startCut);
 }
 
-export const generateProgressFeedback = functions.https.onCall(async (data) => {
+export const generateProgressFeedback = functions.https.onCall(async (data, context) => {
+  const uid = context.auth?.uid;
+  if (!uid) throw new functions.https.HttpsError("unauthenticated", "Authentication required");
+  const userSnap = await admin.firestore().collection('users').doc(uid).get();
+  const user = userSnap.data() || {};
+  if (!user.isPremium && !user.isTester) {
+    throw new functions.https.HttpsError("permission-denied", "Premium required");
+  }
   const raw: Entry[] = data?.entries || [];
   const windowDays: number = Number(data?.windowDays || 30);
 

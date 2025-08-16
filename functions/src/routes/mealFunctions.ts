@@ -2,6 +2,7 @@
 import * as functions from "firebase-functions";
 import openai from "../services/openai.js";
 import { buildPromptFromFilters } from "./buildPromptFromFilters.js";
+import { assertPremiumOrWithinLimit } from "../usage/limits.js";
 
 function normalizeFilters(filters: any = {}) {
   return {
@@ -67,7 +68,10 @@ function containsBanned(plan: any[], bannedList: string[]) {
 }
 
 // Single Meal
-export const generateSingleMeal = functions.https.onCall(async (data) => {
+export const generateSingleMeal = functions.https.onCall(async (data, context) => {
+  const uid = context.auth?.uid;
+  if (!uid) throw new functions.https.HttpsError("unauthenticated", "Authentication required");
+  await assertPremiumOrWithinLimit(uid, "meal");
   const filters = normalizeFilters(data.filters);
   const recentMealNames = data.recentMealNames?.join(", ") || "None";
   const filterPrompt = buildPromptFromFilters(filters);
@@ -117,7 +121,10 @@ Respond ONLY with valid JSON like this:
 });
 
 // Full Meal Plan with strict filters & retry
-export const generateMealPlan = functions.https.onCall(async (data) => {
+export const generateMealPlan = functions.https.onCall(async (data, context) => {
+  const uid = context.auth?.uid;
+  if (!uid) throw new functions.https.HttpsError("unauthenticated", "Authentication required");
+  await assertPremiumOrWithinLimit(uid, "meal");
   const filters = normalizeFilters(data.filters);
   const recentMealNames = data.recentMealNames?.join(", ") || "None";
   const filterPrompt = buildPromptFromFilters(filters);
@@ -189,7 +196,10 @@ Respond ONLY with valid JSON array like:
   }
 });
 
-export const generateRequestedMeal = functions.https.onCall(async (data) => {
+export const generateRequestedMeal = functions.https.onCall(async (data, context) => {
+  const uid = context.auth?.uid;
+  if (!uid) throw new functions.https.HttpsError("unauthenticated", "Authentication required");
+  await assertPremiumOrWithinLimit(uid, "meal");
   const filters = normalizeFilters(data.filters);
   const recentMealNames = data.recentMealNames?.join(", ") || "None";
   const filterPrompt = buildPromptFromFilters(filters);

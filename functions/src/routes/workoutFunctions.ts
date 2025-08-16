@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions";
 import openai from "../services/openai.js";
+import { assertPremiumOrWithinLimit } from "../usage/limits.js";
 
 function safeParse(content: string) {
   try {
@@ -12,7 +13,10 @@ function safeParse(content: string) {
   }
 }
 
-export const generateSingleWorkout = functions.https.onCall(async (data) => {
+export const generateSingleWorkout = functions.https.onCall(async (data, context) => {
+  const uid = context.auth?.uid;
+  if (!uid) throw new functions.https.HttpsError("unauthenticated", "Authentication required");
+  await assertPremiumOrWithinLimit(uid, "workout");
   const filters = data.filters || {};
   const prompt = `You are a professional fitness coach. Create one workout in JSON format with fields: workoutType, primaryMuscleGroup (one of [Push, Pull, Legs, Arms, Core, Full Body]), name, duration (minutes), equipment (array), exercises (array of {name, sets, reps, rest, notes}). Consider these filters: ${JSON.stringify(filters)}. Respond with valid JSON.`;
   try {
@@ -29,7 +33,10 @@ export const generateSingleWorkout = functions.https.onCall(async (data) => {
   }
 });
 
-export const generateWorkoutPlan = functions.https.onCall(async (data) => {
+export const generateWorkoutPlan = functions.https.onCall(async (data, context) => {
+  const uid = context.auth?.uid;
+  if (!uid) throw new functions.https.HttpsError("unauthenticated", "Authentication required");
+  await assertPremiumOrWithinLimit(uid, "workout");
   const filters = data.filters || {};
   const days = filters.daysPerWeek || 3;
   const prompt = `You are a professional fitness coach. Create a ${days}-day workout plan as JSON array. Each item must have: workoutType, primaryMuscleGroup (one of [Push, Pull, Legs, Arms, Core, Full Body]), name, duration, equipment (array), exercises: [{name, sets, reps, rest, notes}]. Use these filters: ${JSON.stringify(filters)}. Respond with valid JSON array.`;
