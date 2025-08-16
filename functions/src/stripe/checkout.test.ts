@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 import { getOrCreateCustomer } from './customers';
 import { createCheckoutSession } from './checkout';
 import * as functions from 'firebase-functions';
@@ -31,17 +32,19 @@ jest.mock('stripe', () => {
   }));
 });
 
-jest.mock('firebase-admin', () => {
+jest.mock('../admin.js', () => {
   getMock = jest.fn();
   setMock = jest.fn();
   authGetUserMock = jest.fn();
   return {
-    firestore: () => ({
+    db: {
       collection: () => ({
         doc: () => ({ get: getMock, set: setMock }),
       }),
-    }),
-    auth: () => ({ getUser: authGetUserMock }),
+    },
+    auth: {
+      getUser: authGetUserMock,
+    },
   };
 });
 

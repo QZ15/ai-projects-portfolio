@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
+import { db } from '../admin.js';
+import { FieldValue } from 'firebase-admin/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-07-30.basil',
@@ -25,8 +26,6 @@ export const stripeWebhook = functions.https.onRequest(async (req, res) => {
     return;
   }
 
-  const db = admin.firestore();
-
   switch (event.type) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
@@ -43,7 +42,7 @@ export const stripeWebhook = functions.https.onRequest(async (req, res) => {
               priceId: sub.items.data[0]?.price.id,
               current_period_end: sub.current_period_end,
             },
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
           },
           { merge: true }
         );
@@ -63,7 +62,7 @@ export const stripeWebhook = functions.https.onRequest(async (req, res) => {
               priceId: sub.items.data[0]?.price.id,
               current_period_end: sub.current_period_end,
             },
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
           },
           { merge: true }
         );

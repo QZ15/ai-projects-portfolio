@@ -4,7 +4,7 @@ import * as functions from 'firebase-functions';
 const getUsageMock = jest.fn();
 const setUsageMock = jest.fn();
 const getUserMock = jest.fn();
-var runTransactionMock: jest.Mock;
+const runTransactionMock = jest.fn();
 
 jest.mock('firebase-functions', () => ({
   https: {
@@ -18,19 +18,16 @@ jest.mock('firebase-functions', () => ({
   },
 }));
 
-jest.mock('firebase-admin', () => {
-  runTransactionMock = jest.fn();
-  return {
-    firestore: () => ({
+jest.mock('../admin.js', () => ({
+  get db() {
+    return {
       collection: (name: string) => ({
-        doc: () => ({
-          get: name === 'users' ? getUserMock : undefined,
-        }),
+        doc: () => ({ get: name === 'users' ? getUserMock : getUsageMock }),
       }),
       runTransaction: runTransactionMock,
-    }),
-  } as any;
-});
+    };
+  },
+}));
 
 describe('assertPremiumOrWithinLimit', () => {
   beforeEach(() => {

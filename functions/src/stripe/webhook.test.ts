@@ -1,8 +1,8 @@
+/* eslint-disable no-var */
 import { stripeWebhook } from './webhook';
-import * as admin from 'firebase-admin';
 
 var constructMock: jest.Mock;
-const setMock = jest.fn();
+var setMock: jest.Mock = jest.fn();
 
 jest.mock('stripe', () => {
   constructMock = jest.fn();
@@ -11,20 +11,25 @@ jest.mock('stripe', () => {
   }));
 });
 
-jest.mock('firebase-admin', () => {
-  const firestore = () => ({
-    collection: () => ({
-      doc: () => ({ set: setMock }),
-    }),
-  });
-  (firestore as any).FieldValue = { serverTimestamp: jest.fn() };
-  return { firestore, credential: { applicationDefault: jest.fn() } } as unknown as typeof admin;
-});
+jest.mock('../admin.js', () => ({
+  get db() {
+    setMock = jest.fn();
+    return {
+      collection: () => ({
+        doc: () => ({ set: setMock }),
+      }),
+    };
+  },
+}));
+
+jest.mock('firebase-admin/firestore', () => ({
+  FieldValue: { serverTimestamp: jest.fn() },
+}));
 
 describe('stripeWebhook', () => {
   beforeEach(() => {
     constructMock.mockReset();
-    setMock.mockReset();
+    setMock = jest.fn();
   });
 
   it('handles subscription created', async () => {

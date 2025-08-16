@@ -26,13 +26,13 @@ jest.mock('../services/openai.js', () => ({
   },
 }));
 
-jest.mock('firebase-admin', () => ({
-  firestore: () => ({
+jest.mock('../admin.js', () => ({
+  db: {
     collection: () => ({
       doc: () => ({ get: getUserMock }),
     }),
-  }),
-}) as any);
+  },
+}));
 
 describe('generateProgressFeedback', () => {
   it('returns feedback for premium user', async () => {

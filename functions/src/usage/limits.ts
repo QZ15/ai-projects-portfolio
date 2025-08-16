@@ -1,7 +1,5 @@
-import * as admin from 'firebase-admin';
+import { db } from '../admin.js';
 import * as functions from 'firebase-functions';
-
-const db = admin.firestore();
 
 function currentWeekKey(date: Date = new Date()): string {
   const year = date.getUTCFullYear();

@@ -16,10 +16,10 @@ jest.mock('firebase-functions', () => ({
   },
 }));
 
-jest.mock('firebase-admin', () => ({
-  firestore: () => ({
+jest.mock('../admin.js', () => ({
+  db: {
     collection: () => ({ doc: () => ({ set: setMock }) })
-  })
+  }
 }));
 
 describe('setTesterAccess', () => {

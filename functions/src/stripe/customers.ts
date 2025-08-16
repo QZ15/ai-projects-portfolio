@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import * as admin from 'firebase-admin';
+import { db, auth } from '../admin.js';
 import * as functions from 'firebase-functions';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -10,12 +10,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
  * Returns existing Stripe customer ID for the user or creates one.
  */
 export async function getOrCreateCustomer(uid: string): Promise<string> {
-  const userDocRef = admin.firestore().collection('users').doc(uid);
+  const userDocRef = db.collection('users').doc(uid);
   const userDoc = await userDocRef.get();
   const existingId = userDoc.data()?.stripeCustomerId;
   if (existingId) return existingId;
 
-  const userRecord = await admin.auth().getUser(uid);
+  const userRecord = await auth.getUser(uid);
   const customer = await stripe.customers.create({
     email: userRecord.email ?? undefined,
     metadata: { uid },

@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
+import { db } from '../admin.js';
 
 function getAdmins(): string[] {
   return (process.env.ALLOW_TESTER_ADMIN_UIDS || '').split(',').filter(Boolean);
@@ -16,6 +16,6 @@ export const setTesterAccess = functions.https.onCall(async (data: Req, context)
   if (!data?.uid || typeof data.value !== 'boolean') {
     throw new functions.https.HttpsError('invalid-argument', 'uid and value required');
   }
-  await admin.firestore().collection('users').doc(data.uid).set({ isTester: data.value }, { merge: true });
+  await db.collection('users').doc(data.uid).set({ isTester: data.value }, { merge: true });
   return { ok: true };
 });
