@@ -1,11 +1,19 @@
 import { httpsCallable } from 'firebase/functions';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { navigate } from '../navigation/RootNavigation';
 import { functions } from './firebase';
 
 export async function startCheckout(priceId: string) {
   const fn = httpsCallable(functions, 'createCheckoutSessionFunction');
   const res: any = await fn({ priceId });
-  await WebBrowser.openBrowserAsync(res.data.url);
+  const returnUrl = Linking.createURL('/');
+  const result = await WebBrowser.openAuthSessionAsync(res.data.url, returnUrl);
+  if (result.type === 'success' && result.url) {
+    const path = Linking.parse(result.url).path;
+    if (path === 'success') navigate('CheckoutSuccess');
+    else if (path === 'cancel') navigate('CheckoutCanceled');
+  }
 }
 
 export async function openBillingPortal() {
