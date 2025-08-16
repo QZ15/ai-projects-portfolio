@@ -9,6 +9,6 @@ export function getStripe(): Stripe {
   if (!key) {
     throw new Error('Missing Stripe secret key (set with: firebase functions:config:set stripe.secret_key="...")');
   }
-  _stripe = new Stripe(key, { apiVersion: '2024-06-20' });
+  _stripe = new Stripe(key, { apiVersion: '2025-07-30.basil' });
   return _stripe;
 }
