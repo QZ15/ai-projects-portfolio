@@ -8,6 +8,7 @@ module.exports = {
     '^../services/openai.js$': '<rootDir>/src/services/openai.ts',
     '^./customers.js$': '<rootDir>/src/stripe/customers.ts',
     '^../admin.js$': '<rootDir>/src/admin.ts',
+    '^./stripeClient.js$': '<rootDir>/src/stripe/stripeClient.ts',
   },
   globals: {
     'ts-jest': {

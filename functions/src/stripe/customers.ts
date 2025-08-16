@@ -1,10 +1,8 @@
-import Stripe from 'stripe';
 import { db, auth } from '../admin.js';
 import * as functions from 'firebase-functions';
+import { getStripe } from './stripeClient.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-07-30.basil',
-});
+const stripe = getStripe();
 
 /**
  * Returns existing Stripe customer ID for the user or creates one.

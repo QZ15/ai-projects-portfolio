@@ -2,10 +2,9 @@ import Stripe from 'stripe';
 import * as functions from 'firebase-functions';
 import { db } from '../admin.js';
 import { FieldValue } from 'firebase-admin/firestore';
+import { getStripe } from './stripeClient.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-07-30.basil',
-});
+const stripe = getStripe();
 
 function mapStatus(status: string): boolean {
   return status === 'active' || status === 'trialing';

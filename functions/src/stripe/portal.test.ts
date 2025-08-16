@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 import { createPortalSession } from './portal';
 import * as functions from 'firebase-functions';
 
@@ -16,11 +17,13 @@ jest.mock('firebase-functions', () => ({
   },
 }));
 
-jest.mock('stripe', () => {
+jest.mock('./stripeClient', () => {
   portalCreateMock = jest.fn();
-  return jest.fn().mockImplementation(() => ({
-    billingPortal: { sessions: { create: portalCreateMock } },
-  }));
+  return {
+    getStripe: () => ({
+      billingPortal: { sessions: { create: portalCreateMock } },
+    }),
+  };
 });
 
 jest.mock('./customers', () => ({

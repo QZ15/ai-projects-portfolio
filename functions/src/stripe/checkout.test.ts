@@ -23,13 +23,15 @@ jest.mock('firebase-functions', () => ({
   logger: { info: jest.fn() },
 }));
 
-jest.mock('stripe', () => {
+jest.mock('./stripeClient', () => {
   checkoutCreateMock = jest.fn();
   customerCreateMock = jest.fn();
-  return jest.fn().mockImplementation(() => ({
-    checkout: { sessions: { create: checkoutCreateMock } },
-    customers: { create: customerCreateMock },
-  }));
+  return {
+    getStripe: () => ({
+      checkout: { sessions: { create: checkoutCreateMock } },
+      customers: { create: customerCreateMock },
+    }),
+  };
 });
 
 jest.mock('../admin.js', () => {

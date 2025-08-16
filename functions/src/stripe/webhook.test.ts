@@ -4,11 +4,13 @@ import { stripeWebhook } from './webhook';
 var constructMock: jest.Mock;
 var setMock: jest.Mock = jest.fn();
 
-jest.mock('stripe', () => {
+jest.mock('./stripeClient', () => {
   constructMock = jest.fn();
-  return jest.fn().mockImplementation(() => ({
-    webhooks: { constructEvent: constructMock },
-  }));
+  return {
+    getStripe: () => ({
+      webhooks: { constructEvent: constructMock },
+    }),
+  };
 });
 
 jest.mock('../admin.js', () => ({

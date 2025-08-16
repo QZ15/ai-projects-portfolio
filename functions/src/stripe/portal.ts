@@ -1,10 +1,8 @@
-import Stripe from 'stripe';
 import * as functions from 'firebase-functions';
 import { getOrCreateCustomer } from './customers.js';
+import { getStripe } from './stripeClient.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-07-30.basil',
-});
+const stripe = getStripe();
 
 export const createPortalSession = functions.https.onCall(async (_data, context) => {
   const uid = context.auth?.uid;
